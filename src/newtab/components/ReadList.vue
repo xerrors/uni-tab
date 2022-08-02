@@ -18,22 +18,19 @@
 <script>
 import { onMounted, ref } from "vue";
 import { useTimeAgo } from '@vueuse/core'
+import { getItemFromStorage, saveItemToStorage } from '@/utils/storage';
 
 export default {
   name: "read-list",
   setup() {
     const readlist = ref([]);
 
-    const loadReadlist = () => {
-      chrome.storage.sync.get(['readlist'], function(res) {
-        if (res.readlist) {
-          readlist.value = res.readlist.map(item => {
-            item = JSON.parse(item)
-            item.domain = item.url.split('/')[2];
-            item.time = useTimeAgo(item.time)
-            return item;
-          });
-        }
+    const praseReadlist = (list) => {
+      readlist.value = list.map(item => {
+        item = JSON.parse(item)
+        item.domain = item.url.split('/')[2];
+        item.time = useTimeAgo(item.time)
+        return item;
       });
     }
 
@@ -43,13 +40,13 @@ export default {
           readlist.value.splice(i, 1);
         }
       })
-      chrome.storage.sync.set({readlist: readlist.value.map(item => JSON.stringify(item))}, function() {
+      saveItemToStorage('readlist', readlist.value).then(() => {
         console.log("removed")
-      });
+      })
     }
 
     onMounted(() => {
-      loadReadlist();
+      getItemFromStorage('readlist').then( res => praseReadlist(res))
     })
 
     return {

@@ -1,7 +1,7 @@
 <template>
   <div class="newtab">
     <div class="header-ccontainer">
-      <h1>{{ state.greet }}</h1>
+      <h1>{{ userConfig.name }}, {{ state.greet }}</h1>
       <div class="settings div-btn" @click="handleSettingClick">
         设置
       </div>
@@ -26,12 +26,11 @@
           <span>{{ key }}</span>
           <span class="remove-link-group" @click="removeLinkGroup(key)">移除</span>
         </div>
-        <!-- <div style="width: 100%; height: 2px; background: black; margin: 4px"></div> -->
         <draggable
           class="links"
           :list="links"
           group="links"
-          @change="saveGroupedLinks"
+          @change="saveChangeToStorage"
           itemKey="url"
           v-bind="state.dragOptions"
         >
@@ -54,7 +53,8 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { saveAs } from 'file-saver'
 import draggable from 'vuedraggable'
 
-import ReadList from "./ReadList.vue";
+import ReadList from "./ReadList.vue"
+import { getItemFromStorage, saveItemToStorage, getAndSetStorageItem } from "@/utils/storage"
 
 
 export default {
@@ -124,7 +124,11 @@ export default {
       })
     })
 
-    const saveGroupedLinks = () => {
+    const userConfig = reactive({
+      name: "玉川"
+    })
+
+    const saveChangeToStorage = () => {
       let links = [];
       Object.keys(groupedLinks.value).forEach(key => {
         groupedLinks.value[key] = groupedLinks.value[key].map(link => {
@@ -133,84 +137,75 @@ export default {
         })
         links = links.concat(groupedLinks.value[key])
       });
-      chrome.storage.sync.set({links: links.map(item => JSON.stringify(item))}, function() {
-        console.log("saved")
-      });
+      saveItemToStorage("links", links).then(() => console.log("saved"))
     }
 
-    const loadLinks = (callback) => {
-      chrome.storage.sync.get(['links'], function(res) {
-        let links;
-        if (res.links && res.links.length > 0) {
-          links = res.links.map(link => JSON.parse(link));
-        } else {
-          links = init_links
-          chrome.storage.sync.set({links: init_links.map(item => JSON.stringify(item))}, function() {
-            console.log("init")
-          });
-        }
-        callback(links)
-      });
+    const loadLinks = () => {
+      return new Promise(callback => {
+        getItemFromStorage("links")
+        .then( res => {
+          const links = res.map(link => JSON.parse(link))
+          callback(links)
+        })
+        .catch(() => {
+          callback(init_links)
+          saveItemToStorage("links", init_links).then(() => console.log("init"))
+        })
+      })
     }
 
     const delLinks = (url) => {
-      chrome.storage.sync.get(['links'], function(res) {
-        let tmp_links = res.links.map(link => JSON.parse(link));
-        tmp_links.map((item, i) => {
-          if (item.url == url) {
-            tmp_links.splice(i, 1);
-          }
-        })
-        chrome.storage.sync.set({links: tmp_links.map(item => JSON.stringify(item))}, function() {
-          console.log("removed")
-          loadGroupedLinks()
-        });
-      });
+      getAndSetStorageItem("links",
+        getResult => {
+          let links = getResult.links.map(link => JSON.parse(link));
+          links.map((item, i) => {
+            if (item.url == url) {
+              links.splice(i, 1);
+            }
+          })
+          return links
+        },
+        setResult => praseLinksToGroupLinks(setResult)
+      )
     }
 
     const removeLinkGroup = (groupName) => {
-      console.log(groupName)
+      console.log('remove group: ' + groupName)
       delete groupedLinks.value[groupName]
-      saveGroupedLinks()
+      saveChangeToStorage()
     }
 
-    const saveConfig = () => {
-      loadLinks( res => {
-        var content = JSON.stringify(res);
-        var blob = new Blob([content ], {type: "text/plain;charset=utf-8"}); 
-        saveAs(blob, "chuan.config")
-      })
+    const saveConfig = async () => {
+      const config = Object()
+      await loadLinks().then( res => config.links = res)
+
+      const content = JSON.stringify(config);
+      const blob = new Blob([content ], {type: "text/plain;charset=utf-8"}); 
+      saveAs(blob, "chuan.config")
     }
 
     const loadConfig = (event) => {
       const files = event.target.files
       if (files.length != 1) {
-        console.log("Error Files")
-        console.log(files)
-      } else {
+        console.log("Error Files: " + files)
+      } 
+      else {
         const reader = new FileReader()
         reader.readAsText(files[0])
         reader.onload = function (reader_res) {
-          console.log(reader_res.target.result);
-          
-          const links = JSON.parse(reader_res.target.result)
-          chrome.storage.sync.set({links: links.map(item => JSON.stringify(item))}, function() {
-            console.log("loaded")
-            loadGroupedLinks()
-          });
+          const config = JSON.parse(reader_res.target.result)
+          saveItemToStorage("links", config.links).then((data) => praseLinksToGroupLinks(data))
         }
       }
     }
 
-    const loadGroupedLinks = () => {
-      loadLinks( links => {
-        groupedLinks.value = {}
-        links.forEach(item => {
-          const key = item.group;
-          groupedLinks.value[key] = groupedLinks.value[key] || [];
-          groupedLinks.value[key].push(item);
-        })
-      });
+    const praseLinksToGroupLinks = (links) => {
+      groupedLinks.value = {}
+      links.forEach(item => {
+        const key = item.group;
+        groupedLinks.value[key] = groupedLinks.value[key] || [];
+        groupedLinks.value[key].push(item);
+      })
     }
 
     const demoClick = () => {
@@ -232,15 +227,16 @@ export default {
     }
 
     onMounted(() => {
-      loadGroupedLinks();
+      loadLinks().then( res => praseLinksToGroupLinks(res))
     })
 
     return {
       state,
+      userConfig,
       groupedLinks,
       fileInputBtn,
       delLinks,
-      saveGroupedLinks,
+      saveChangeToStorage,
       saveConfig,
       loadConfig,
       demoClick,
@@ -379,7 +375,7 @@ body, html {
     & > span {
       display: none;
       cursor: pointer;
-      color: #ff7875;
+      color: #bd4644;
       text-decoration-line: none;
       float: right;
       text-align: right;
