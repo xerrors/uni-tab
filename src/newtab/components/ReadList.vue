@@ -29,7 +29,9 @@ export default {
       readlist.value = list.map(item => {
         item = JSON.parse(item)
         item.domain = item.url.split('/')[2];
-        item.time = useTimeAgo(item.time)
+        if (item.time.toString().length == 13 && new Date(item.time).toString() != new Date("not_time").toString()) {
+          item.time = useTimeAgo(item.time)
+        }
         return item;
       });
     }
@@ -112,21 +114,24 @@ export default {
     }
 
     button {
-      display: none;
+      opacity: 0;
       height: 30px;
       padding: 12px;
       margin-left: auto;
       border: none;
       background: transparent;
       color: gray;
+      transition: all 0.1s ease-in-out;
 
       &:hover {
         cursor: pointer;
+        pointer-events: auto;
       }
     }
 
     &:hover button {
-      display: inline-block;
+      cursor: pointer;
+      opacity: 1;
     }
   }
 
