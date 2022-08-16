@@ -1,0 +1,11 @@
+@import url("../css/vars.css");
+
+body {
+  background-color: var(--bg-color);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  /* font-family: initial; */
+}

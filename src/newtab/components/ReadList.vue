@@ -6,7 +6,7 @@
         <a class="read-card" :href="item.url">
           <p class="card__title">{{ item.title }}</p>
           <span class="card__domain">{{ item.domain }}</span>
-          <span class="card__time">{{ item.time }}</span>
+          <span class="card__time">{{ item.fmtTime }}</span>
         </a>
         <button @click="delReadCard(item.url)">已读</button>
       </div>
@@ -29,9 +29,7 @@ export default {
       readlist.value = list.map(item => {
         item = JSON.parse(item)
         item.domain = item.url.split('/')[2];
-        if (item.time.toString().length == 13 && new Date(item.time).toString() != new Date("not_time").toString()) {
-          item.time = useTimeAgo(item.time)
-        }
+        item.fmtTime = useTimeAgo(item.time)
         return item;
       });
     }
@@ -67,7 +65,7 @@ export default {
 .readlist-container .readlist {
   display: grid;
   justify-content: space-between;
-  grid-template-columns: repeat(auto-fill, 300px);
+  grid-template-columns: repeat(auto-fill, var(--readcard-width));
   grid-gap: 10px;
 
   .read-item {

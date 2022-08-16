@@ -2,8 +2,15 @@
   <div class="newtab">
     <div class="header-ccontainer">
       <h1>{{ userConfig.name }}, {{ state.greet }}</h1>
+      <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
+        <appstore-outlined />
+      </div>
+      <div class="settings div-btn" @click="state.edit_link = !state.edit_link">
+        <!-- {{ state.edit_link ? "完成" : "编辑" }} -->
+        <form-outlined />
+      </div>
       <div class="settings div-btn" @click="handleSettingClick">
-        设置
+        <setting-outlined />
       </div>
     </div>
     <div class="options-container" v-if="state.show_options">
@@ -16,15 +23,20 @@
       </div>
       <input type="text" v-model="state.newGroupName">
       <div class="options-btn div-btn" @click="addNewLinkGroup">创建新组</div>
-      <div class="options-btn div-btn" @click="state.edit_link = !state.edit_link">
-        {{ state.edit_link ? "完成" : "编辑" }}
-      </div>
     </div>
-    <div :class="[{editable: state.edit_link}, 'links-container']">
-      <div class="link-group" v-for="(links, key) in groupedLinks" :key="key">
+    <div class="links-header">
+      
+    </div>
+    <div :class="[{editable: state.edit_link, archived: state.archiveMode}, 'links-container']">
+      <div :class="[{'is-archived': archivedLinkGroup.includes(key)}, 'link-group']" 
+            v-for="(links, key) in groupedLinks" :key="key">
         <div class="link-group-name">
           <span>{{ key }}</span>
-          <span class="remove-link-group" @click="removeLinkGroup(key)">移除</span>
+          <span class="archive-btn link-group-btn" @click="archiveGroup(key)" v-if="state.archiveMode & (!state.edit_link)">
+            <eye-invisible-outlined v-if="archivedLinkGroup.includes(key)"/>
+            <eye-outlined v-else/>
+          </span>
+          <span class="remove-btn link-group-btn" @click="removeLinkGroup(key)" v-if="state.edit_link">移除</span>
         </div>
         <draggable
           class="links"
@@ -37,7 +49,7 @@
           <template #item="{ element }">
             <div class="list-group-item link-item">
                 <a :href="element.url">{{ element.title }}</a>
-                <span @click="delLinks(element.url)">删除</span>
+                <close-circle-outlined @click="delLinks(element.url)"/>
             </div>
           </template>
         </draggable>
@@ -55,12 +67,25 @@ import draggable from 'vuedraggable'
 
 import ReadList from "./ReadList.vue"
 import { getItemFromStorage, saveItemToStorage, getAndSetStorageItem } from "@/utils/storage"
-
+import { 
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  CloseCircleOutlined,
+  SettingOutlined,
+  AppstoreOutlined,
+  FormOutlined,
+} from '@ant-design/icons-vue';
 
 export default {
   components: {
     draggable,
     ReadList,
+    EyeInvisibleOutlined,
+    EyeOutlined,
+    CloseCircleOutlined,
+    SettingOutlined,
+    AppstoreOutlined,
+    FormOutlined,
   },
   setup() {
     const init_links = [
@@ -93,11 +118,13 @@ export default {
 
     const fileInputBtn = ref(null);
     const groupedLinks = ref({});
+    const archivedLinkGroup = ref([]);
 
     const state = reactive({
       newGroupName: "",
       edit_link: false,
       show_options: false,
+      archiveMode: false,
       greet: computed(() => {
         const time = new Date();
         const hour = time.getHours();
@@ -154,6 +181,30 @@ export default {
       })
     }
 
+    const loadArchivedGroup = () => {
+      return new Promise(callback => {
+        getItemFromStorage("archived")
+        .then(res => {
+          console.log(res)
+          callback(res.map(item => JSON.parse(item)));
+        })
+        .catch(() => {
+          callback([])
+        })
+      })
+    }
+
+    const archiveGroup = (groupName) => {
+      if (archivedLinkGroup.value.includes(groupName)) {
+        archivedLinkGroup.value.map((item, i) => {
+          if (item == groupName) { archivedLinkGroup.value.splice(i,1) }
+        })
+      } else {
+        archivedLinkGroup.value.push(groupName)
+      }
+      saveItemToStorage("archived", archivedLinkGroup.value).then(console.log(archivedLinkGroup.value))
+    }
+
     const delLinks = (url) => {
       getAndSetStorageItem("links",
         getResult => {
@@ -172,12 +223,19 @@ export default {
     const removeLinkGroup = (groupName) => {
       console.log('remove group: ' + groupName)
       delete groupedLinks.value[groupName]
+      if (archivedLinkGroup.value.includes(groupName)) {
+        archivedLinkGroup.value.map((item, i) => {
+          if (item == groupName) { archivedLinkGroup.value.splice(i,1) }
+        })
+        saveItemToStorage("archived", archivedLinkGroup.value)
+      }
       saveChangeToStorage()
     }
 
     const saveConfig = async () => {
       const config = Object()
       await loadLinks().then( res => config.links = res)
+      await loadArchivedGroup().then( res => config.archived = res)
 
       const content = JSON.stringify(config);
       const blob = new Blob([content ], {type: "text/plain;charset=utf-8"}); 
@@ -195,6 +253,7 @@ export default {
         reader.onload = function (reader_res) {
           const config = JSON.parse(reader_res.target.result)
           saveItemToStorage("links", config.links).then((data) => praseLinksToGroupLinks(data))
+          saveItemToStorage("archived", config.archived).then((data) => archivedLinkGroup.value = data)
         }
       }
     }
@@ -228,6 +287,7 @@ export default {
 
     onMounted(() => {
       loadLinks().then( res => praseLinksToGroupLinks(res))
+      loadArchivedGroup( res => archivedLinkGroup.value = res)
     })
 
     return {
@@ -243,24 +303,22 @@ export default {
       removeLinkGroup,
       addNewLinkGroup,
       handleSettingClick,
+      archiveGroup,
+      archivedLinkGroup,
     };
   },
 };
 </script>
  
 <style lang="less" scoped>
-
-body, html {
-  margin: 0;
-  padding: 0;
-}
+@import url("../css/index.css");
 
 .newtab {
   width: 80vw;
-  max-width: 1050px;
+  max-width: var(--page-width-main);
   margin: 0 auto;
   padding: 50px;
-  /* background-color: red; */
+  background-color: #f9f9fb;
 
   > * {
     margin-bottom: 50px;
@@ -273,9 +331,10 @@ body, html {
   display: inline-block;
   margin-top: 10px;
   margin-bottom: 10px;
-  padding: 12px 10px;
+  padding: 12px 12px;
   line-height: 16px;
   border-radius: 4px;
+  user-select: none;
 }
 
 .header-ccontainer {
@@ -284,13 +343,14 @@ body, html {
   justify-items: center;
 
   user-select: none;
+  margin-top: 50px;
+  margin-bottom: 100px;
 
   h1 {
     margin: 0;
     line-height: 60px;
   }
   div.settings {
-    margin-left: auto;
 
     &:hover {
       transition: all 0.1s ease-in-out;
@@ -303,6 +363,7 @@ body, html {
   width: 100%;
   padding: 16px 12px;
   box-sizing: border-box;
+  user-select: none;
 
   background: #fafafa;
   border: 1px solid #d0d7de;
@@ -326,9 +387,15 @@ body, html {
 .links-container {
   display: grid;
   justify-content: space-between;
-  grid-template-columns: repeat(auto-fill, 220px);
+  grid-template-columns: repeat(auto-fill, var(--linkcard-width));
   grid-gap: 10px;
+
+  .is-archived {
+    display: none;
+  }
 }
+
+
 .link-group {
   width: 100%; 
   margin-bottom: 20px;
@@ -341,12 +408,16 @@ body, html {
     display: flex;
     font-weight: bold;
 
-    span.remove-link-group {
-      display: none;
+    span.link-group-btn {
       margin-left: auto;
       cursor: pointer;
-      
+    }
+
+    span.remove-btn {
       color: #ff7875
+    }
+    span.archive-btn {
+      color: #140000
     }
   }
 
@@ -355,27 +426,28 @@ body, html {
     width: 100%;
 
     & > a, span {
-      font-size: 14px;
+      font-size: 15px;
       display: inline-block;
       border-radius: 4px;
-      padding: 10px 8px;
+      padding: 8px 10px;
       box-sizing: border-box;
       transition: background 0.1s ease-in-out;
     }
 
     & > a {
-      width: 220px;
+      width: var(--linkcard-width);
       text-decoration-line: none;
+      line-height: 1;
       color: black;
-      overflow:hidden; 
+      overflow:hidden;
       text-overflow:ellipsis;
-      white-space:nowrap; 
+      white-space:nowrap;
     }
 
     & > span {
       display: none;
       cursor: pointer;
-      color: #bd4644;
+      color: #ff7875;
       text-decoration-line: none;
       float: right;
       text-align: right;
@@ -391,13 +463,19 @@ body, html {
   }
 }
 
+.links-container.archived {
+  .is-archived {
+    display: block;
+  }
+}
+
 .links-container.editable {
   .link-group .link-group-name span.remove-link-group {
     display: inline-block;
   }
   .link-group .links {
     .link-item > a {
-        width: 170px;
+        width: calc( var(--linkcard-width) - 40px );
     }
     .link-item > span {
         display: inline-block;
