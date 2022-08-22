@@ -19,7 +19,15 @@ const copyFiles = [
       {
         from: path.resolve("src/plugins/inject.js"),
         to: path.resolve("dist/js")
-      }
+      },
+      // {
+      //   from: path.resolve("src/background/main.js"),
+      //   to: path.resolve("dist/js/background.js")
+      // },
+      // {
+      //   from: path.resolve("src/background/index.html"),
+      //   to: path.resolve("dist/html/background.html")
+      // }
 ];
  
 // 复制插件
@@ -32,13 +40,13 @@ const plugins = [
 // 页面文件
 const pages = {};
 // 配置 popup.html 页面
-const chromeName = ["popup", "newtab"];
+const chromeName = ["popup", "newtab", "background"];
  
 chromeName.forEach(name => {
       pages[name] = {
         entry: `src/${name}/main.js`,
         template: `src/${name}/index.html`,
-        filename: `${name}.html`
+        filename: `html/${name}.html`
       };
 });
  
@@ -47,9 +55,9 @@ module.exports = {
     productionSourceMap: false,
     // 配置 content.js background.js
     configureWebpack: {
-        entry: {
-            background: "./src/background/main.js"
-        },
+        // entry: {
+        //     background: "./src/background/main.js"
+        // },
         output: {
             filename: "js/[name].js"
         },

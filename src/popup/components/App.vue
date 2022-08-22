@@ -31,7 +31,8 @@
       >
       {{ linkstate ? "已经添加" : "收藏链接" }}
     </button>
-    <button class="popup-btn clear" @click="clearStorage">清空</button></div>
+    <button class="popup-btn clear" @click="clearStorage">清空</button>
+  </div>
   <!-- <div class="debug">
     <p>state: {{ state }}</p>
     <p>curSite: {{ curSite }}</p>
@@ -41,6 +42,7 @@
  
 <script>
 import { reactive, ref } from "vue";
+import { modifyConfigViaStorage, clearConfig } from "@/plugins/storage"
 
 export default {
   setup() {
@@ -67,17 +69,26 @@ export default {
         return;
       }
 
-      let links = [];
-      chrome.storage.sync.get(['links'], function(res) {
-        if (res.links) {
-          console.log(res.links.length)
-          links = res.links
+      const item = {
+        title: curSite.title,
+        url: curSite.url,
+        icon: "",
+      }
+
+      modifyConfigViaStorage((config) => {
+        console.log(config)
+        let recentLinks = config.groupLinks.find(item => item.name == "最近添加")
+        if (recentLinks) {
+          recentLinks.links.push(item)
+        } else {
+          config.groupLinks.push({
+            name: "最近添加",
+            links: [item]
+          })
         }
-        links.push(JSON.stringify(curSite))
-        chrome.storage.sync.set({links: links}, function() {
-          linkstate.value = true
-        });
-      });
+        linkstate.value = true
+        return config
+      })
     }
 
     const addToReadList = () => {
@@ -85,27 +96,26 @@ export default {
         return;
       }
 
-      let readlist = [];
-      curSite.time = Date.parse(new Date());  // 获取当前时间戳
-      chrome.storage.sync.get(['readlist'], function(res) {
-        if (res.readlist) {
-          console.log(res.readlist.length)
-          readlist = res.readlist
+      const item = {
+        title: curSite.title,
+        url: curSite.url,
+        time: Date.parse(new Date())  // 获取当前时间戳,
+      }
+
+      modifyConfigViaStorage((config) => {
+        console.log(config)
+        if (config.readList) {
+          config.readList.splice(0,0,item)
+        } else {
+          config.readList = [item]
         }
-        readlist.push(JSON.stringify(curSite))
-        chrome.storage.sync.set({readlist: readlist}, function() {
-          liststate.value = true
-        });
-      });
+        liststate.value = true
+        return config
+      })
     }
 
     const clearStorage = () => {
-      chrome.storage.sync.set({links: []}, function() {
-        console.log("cleared by user!")
-      });
-      chrome.storage.sync.set({readlist: []}, function() {
-        console.log("cleared by user!")
-      });
+      clearConfig()
     }
 
     return {

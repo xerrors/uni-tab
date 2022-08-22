@@ -1,22 +1,31 @@
 import hotReload from '@/utils/hotReload'
 hotReload()
  
+import {
+    loadConfigFromStorage,
+    getConfigFromOSS,
+    saveConfigToStorage,
+    putConfigToOSS,
+} from '@/plugins/storage'
+
 console.log('hello world background')
 
-function getTitle () {
-    console.log(document.title);
-}
 
-// 获取所有 tab
-const pups = chrome.extension.getViews({
-    type: 'popup'
-}) || []
+setInterval(async () => {
+    // loadConfigFromStorage().then(configLocal => {
+    //     getConfigFromOSS().then(configRemote => {
+    //         console.log(configLocal.timeStamp == configRemote.timeStamp)
+    //     })
+    // })
+    const configLocal = await loadConfigFromStorage()
+    const configRemote = await getConfigFromOSS()
 
-// 输出第一个使用插件页面的url
-if (pups.length) {
-    console.log(pups[0].location.href)
-}
-
-export default {
-    getTitle
-}
+    if (configLocal.timeStamp < configRemote.timeStamp) {
+        saveConfigToStorage(configRemote, false)
+        console.log("repace local")
+    } else if (configLocal.timeStamp > configRemote.timeStamp) {
+        putConfigToOSS(configLocal)
+        console.log("repace remote")
+    }
+    // console.log(Date.parse(new Date()))
+}, 10000)
