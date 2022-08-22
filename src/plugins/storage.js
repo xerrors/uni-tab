@@ -1,5 +1,5 @@
-import OSS from 'ali-oss';
-import { defaultConfig } from "@/assets/config"
+import { oss } from "@/assets/configs/alioss"
+import { defaultConfig } from "@/assets/configs/config"
 
 export function loadConfigFromStorage() {
     return new Promise((resolve, reject) => {
@@ -41,24 +41,16 @@ export function clearConfig() {
 
 // https://help.aliyun.com/document_detail/32068.htm
 const reader = new FileReader()
-let oss = new OSS({
-    region: 'oss-cn-hangzhou',
-    accessKeyId: '***',
-    accessKeySecret: '***',
-    bucket: 'chuan-crx',
-});
-
 export function getConfigFromOSS() {
     return new Promise((resolve, reject) => {    
         oss.get('/debug/chuan.config.json').then(res => {
             const blob = new Blob([res.content], {type: 'application/json'});
             reader.readAsText(blob)
-            reader.onload = function (reader_res) {
+            reader.onload = (reader_res) => {
                 const config = JSON.parse(reader_res.target.result)
-                // console.dir(config) // debug
                 resolve(config)
             }
-        }).catch(function (err) {
+        }).catch(err => {
             reject(err)
         });
     })
@@ -75,4 +67,17 @@ export function putConfigToOSS(config) {
             reject(err)
         });
     })
+}
+
+export async function syncConfig() {
+    const configLocal = await loadConfigFromStorage()
+    const configRemote = await getConfigFromOSS()
+
+    if (configLocal.timeStamp < configRemote.timeStamp) {
+        saveConfigToStorage(configRemote, false)
+        console.log("repace local")
+    } else if (configLocal.timeStamp > configRemote.timeStamp) {
+        putConfigToOSS(configLocal)
+        console.log("repace remote")
+    }
 }

@@ -41,6 +41,22 @@ const searchEngine = {
   github: {
     url: "https://github.com/search?q=",
     keywords: ["github"]
+  },
+  dblp: {
+    url: "https://dblp.org/search?q=",
+    keywords: ["dblp", "dplb"]
+  },
+  weixin: {
+    url: "https://weixin.sogou.com/weixin?type=2&query=",
+    keywords: ["微信", "weixin", "wechat", "公众号", "gongzhonghao"]
+  },
+  zhihu: {
+    url: "https://www.zhihu.com/search?type=content&q=",
+    keywords: ["知乎", "zhihu"]
+  },
+  googlescholar: {
+    url: "https://scholar.google.com/scholar?q=",
+    keywords: ["学术", "xueshu", "scholar"]
   }
 }
 watch(inputValue, (value) => {

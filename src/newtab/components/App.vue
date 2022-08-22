@@ -14,14 +14,7 @@
         <setting-outlined />
       </div>
     </div>
-    <div class="options-container" v-if="state.show_options">
-      <input type="file" id="fileInput" ref="fileInputBtn" @change="loadConfig" style="display: none;">
-      <div class="options-btn div-btn" @click="saveConfig"> 保存配置 </div>
-      <div class="options-btn div-btn" @click="demoClick">  加载配置 </div>
-      <input type="text" v-model="state.newGroupName">
-      <div class="options-btn div-btn" @click="addNewLinkGroup">创建新组</div>
-      <div class="options-btn div-btn" @click="changeConfigItem('searchBar', !userConfig.searchBar)">切换 header</div>
-    </div>
+    <user-options v-if="state.show_options"></user-options>
     <div :class="[{editable: state.edit_link, archived: state.archiveMode}, 'links-container']">
       <div :class="[{'is-archived': group.archive }, 'link-group']" 
             v-for="group in userConfig.groupLinks" :key="group.name">
@@ -58,15 +51,16 @@
  
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { saveAs } from 'file-saver'
 import draggable from 'vuedraggable'
 import ReadList from "./ReadList.vue"
 import SearchBar from "./SearchBar.vue";
+import UserOptions from "./UserOptions.vue";
 
 import { 
   loadConfigFromStorage, 
   saveConfigToStorage, 
   modifyConfigViaStorage,
+  getConfigFromOSS,
 } from "@/plugins/storage"
 
 import { 
@@ -78,12 +72,11 @@ import {
   FormOutlined,
 } from '@ant-design/icons-vue';
 
-const fileInputBtn = ref(null);
 
 const state = reactive({
   newGroupName: "",
   edit_link: false,
-  show_options: false,
+  show_options: true,
   archiveMode: false,
   greet: computed(() => {
     const time = new Date();
@@ -115,9 +108,20 @@ const userConfig = ref({})
 
 onMounted(() => {
   loadConfigTemp().then(res => {
-    console.dir(res)
-    userConfig.value = res
-  } )
+    if (res.timeStamp == 0) {
+      getConfigFromOSS().then(ossConfig => {
+        console.log("init from oss")
+        userConfig.value = ossConfig
+        saveConfigToStorage(ossConfig)
+        location.reload()
+      }).catch(() => {
+        userConfig.value = res
+      })
+    }
+    else {
+      userConfig.value = res
+    }
+  })
 })
 
 const loadConfigTemp = () => {
@@ -157,14 +161,6 @@ const delLinks = (groupName, url) => {
   })
 }
 
-const changeConfigItem = (name, value) => {
-  modifyConfigViaStorage(config => {
-    config[name] = value
-    userConfig.value = config
-    return config
-  })
-}
-
 const removeLinkGroup = (groupName) => {
   modifyConfigViaStorage(config => {
     config.groupLinks.map((item, i) => {
@@ -177,47 +173,20 @@ const removeLinkGroup = (groupName) => {
   })
 }
 
-const saveConfig = async () => {
-  loadConfigFromStorage().then(config => {
-    const content = JSON.stringify(config);
-    const blob = new Blob([content ], {type: "text/plain;charset=utf-8"}); 
-    saveAs(blob, "chuan.config")
-  })
-}
 
-const loadConfig = (event) => {
-  const files = event.target.files
-  if (files.length != 1) {
-    console.log("Error Files: " + files)
-  } 
-  else {
-    const reader = new FileReader()
-    reader.readAsText(files[0])
-    reader.onload = function (reader_res) {
-      const config = JSON.parse(reader_res.target.result)
-      saveConfigToStorage(config)
-      userConfig.value = config
-    }
-  }
-}
-
-const demoClick = () => {
-  fileInputBtn.value.click()
-}
-
-const addNewLinkGroup = () => {
-  modifyConfigViaStorage(config => {
-    if (state.newGroupName in config.groupLinks.map(g => g.name) || !state.newGroupName ) {
-      alert("Existed or Empty")
-    } else {
-      const groupLength = config.groupLinks.length
-      const idx = config.groupLinks[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
-      config.groupLinks.splice(idx, 0, {name: state.newGroupName, links: []})
-    }
-    userConfig.value = config
-    return config
-  })
-}
+// const addNewLinkGroup = () => {
+//   modifyConfigViaStorage(config => {
+//     if (state.newGroupName in config.groupLinks.map(g => g.name) || !state.newGroupName ) {
+//       alert("Existed or Empty")
+//     } else {
+//       const groupLength = config.groupLinks.length
+//       const idx = config.groupLinks[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
+//       config.groupLinks.splice(idx, 0, {name: state.newGroupName, links: []})
+//     }
+//     userConfig.value = config
+//     return config
+//   })
+// }
 
 const handleSettingClick = () => {
   state.show_options = !state.show_options;
@@ -272,30 +241,7 @@ const handleSettingClick = () => {
   }
 }
 
-.options-container {
-  width: 100%;
-  padding: 16px 12px;
-  box-sizing: border-box;
-  user-select: none;
 
-  background: #fafafa;
-  border: 1px solid #d0d7de;
-  border-radius: 4px;
-
-  input {
-    height: 32px;
-    width: 100px;
-    margin-right: 10px;
-  }
-
-  .options-btn {
-    height: 40px;
-    margin-right: 10px;
-    background: #2eaadc;
-    color: white;
-    box-sizing: border-box;
-  }
-}
 
 .links-container {
   display: grid;
