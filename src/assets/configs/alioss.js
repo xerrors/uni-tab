@@ -1,7 +1,6 @@
-import OSS from 'ali-oss';
-export let oss = new OSS({
+export const ossConfig = {
     region: 'oss-cn-hangzhou',
     accessKeyId: '***',
     accessKeySecret: '***',
     bucket: 'chuan-crx',
-});
+}

@@ -1,11 +1,19 @@
 :root {
-    --page-width-main: 1050px;
+    --page-width-main: 1100px;
+    --option-width: 400px;
     --linkcard-width: 220px;
     --readcard-width: 300px;
 
     --bg-color: #f9f9fb;
+    --border-color: #d0d7de;
 
     --text-main-color: #262626;
     --text-secondry-color: #464646;
     --text-gray-color: #636363;
+
+    --theme-color-deg: 212deg;
+    --theme-color: hsl(var(--theme-color-deg), 92%, 50%);
+    --theme-color-40: hsl(var(--theme-color-deg), 92%, 40%);
+    --theme-color-60: hsl(var(--theme-color-deg), 92%, 60%);
+    --theme-color-80: hsl(var(--theme-color-deg), 92%, 80%);
 }

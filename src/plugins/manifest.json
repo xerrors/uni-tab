@@ -5,7 +5,7 @@
 	"version": "0.0.2",
 	"browser_action": {
 		"default_title": "chuan",
-		"default_icon": "assets/icon-64.png",
+		"default_icon": "assets/icons/icon-64.png",
 		"default_popup": "html/popup.html"
 	},
     "chrome_url_overrides" : {

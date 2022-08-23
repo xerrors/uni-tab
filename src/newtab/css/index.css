@@ -1,1 +1,44 @@
 @import url("../css/vars.css");
+
+button.c-btn-m, button.c-btn-s, button.c-btn-l {
+    background: var(--theme-color-60);
+    color: white;
+    border-radius: 4px;
+    border: 1px solid var(--theme-color);
+    cursor: pointer;
+}
+
+button.c-btn-m:hvoer, button.c-btn-s:hvoer, button.c-btn-l:hvoer  {
+    background-color: var(--theme-color-40);
+}
+
+button.c-btn-m {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+button.c-btn-s {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+}
+button.c-btn-l {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+button.btn-secondry {
+    background: white;
+    color: var(--text-main-color);
+}
+button.btn-secondry:hover {
+    color: var(--theme-color);
+    border-color: vat(--theme-color);   
+}
+
+.c-btn-text {
+    color: var(--theme-color);
+    cursor: pointer;
+}
+
+.c-btn-text:hover {
+    color: var(--theme-color-40);
+}

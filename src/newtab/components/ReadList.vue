@@ -8,7 +8,7 @@
             <div class="card__info">
               <span class="card__domain">{{ item.domain }}</span>
               <span class="card__time">{{ item.fmtTime }}</span>
-              <button @click="delReadCard(item.url)">已读了</button>
+              <button @click="delReadCard(item.url)">已读</button>
             </div>
           </a>
         </div>
@@ -19,8 +19,8 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { useTimeAgo } from '@vueuse/core'
 import { loadConfigFromStorage, modifyConfigViaStorage } from "@/plugins/storage"
+import { formatTime } from "@/utils/format";
 
 const readlist = ref([]);
 const readContainer = ref(null);
@@ -29,7 +29,7 @@ const praseReadlist = (list) => {
   list = JSON.parse(JSON.stringify(list))
   readlist.value = list.map(item => {
     item.domain = item.url.split('/')[2];
-    item.fmtTime = useTimeAgo(item.time)
+    item.fmtTime = formatTime(item.time)
     return item;
   });
 }

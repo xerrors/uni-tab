@@ -1,9 +1,8 @@
 <template>
-<div style="min-width: 100%; min-height: 100vh; background-color: var(--bg-color);">
-  <div class="newtab">
+<div id="main-container">
+  <div :class="[{'show-option': state.show_options}, 'newtab']">
     <div class="header-ccontainer">
-      <search-bar v-if="userConfig.searchBar"></search-bar>
-      <!-- <h1 v-else>{{ userConfig.name }}, {{ state.greet }}</h1> -->
+      <search-bar></search-bar>
       <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
         <appstore-outlined />
       </div>
@@ -14,7 +13,6 @@
         <setting-outlined />
       </div>
     </div>
-    <user-options v-if="state.show_options"></user-options>
     <div :class="[{editable: state.edit_link, archived: state.archiveMode}, 'links-container']">
       <div :class="[{'is-archived': group.archive }, 'link-group']" 
             v-for="group in userConfig.groupLinks" :key="group.name">
@@ -46,6 +44,7 @@
     <read-list></read-list>
     <!-- <div>{{state}}</div> -->
   </div>
+  <user-options v-if="state.show_options" @hide-options="state.show_options=false"></user-options>
 </div>
 </template>
  
@@ -76,7 +75,7 @@ import {
 const state = reactive({
   newGroupName: "",
   edit_link: false,
-  show_options: true,
+  show_options: false,
   archiveMode: false,
   greet: computed(() => {
     const time = new Date();
@@ -197,18 +196,28 @@ const handleSettingClick = () => {
 <style lang="less" scoped>
 @import url("../css/index.css");
 
+#main-container {
+  min-width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-color); 
+  display: flex;
+
+  & > div.newtab.show-option {
+    width: calc(100vw - var(--option-width));
+  }
+}
+
 .newtab {
-  width: 80vw;
+  width: 100vw;
   color: var(--text-main-color);
   max-width: var(--page-width-main);
   margin: 0 auto;
-  padding: 50px;
+  padding: 3rem;
   background-color: #f9f9fb;
-
-  > * {
-    margin-bottom: 50px;
-  }
+  box-sizing: border-box;
+  // position: relative;
 }
+
 
 .div-btn {
   font-size: 16px;
@@ -237,17 +246,16 @@ const handleSettingClick = () => {
   }
   div.settings:hover {
     transition: all 0.1s ease-in-out;
-    background: #f2f2f2;
+    background: #f0f2f4;
   }
 }
-
-
 
 .links-container {
   display: grid;
   justify-content: space-between;
   grid-template-columns: repeat(auto-fill, var(--linkcard-width));
   grid-gap: 10px;
+  margin-bottom: 50px;
 }
 
 .links-container > .is-archived {
@@ -277,11 +285,12 @@ const handleSettingClick = () => {
     font-size: 1rem;
     height: 1.1rem;
     line-height: 1rem;
-    padding-left: 10px;
-    border-left: 3px solid var(--text-gray-color);
+    padding-left: 7px;
+    border-left: 3px solid var(--theme-color);
     margin-bottom: 12px;
     display: flex;
     position: relative;
+    letter-spacing: 1px;
     // font-weight: bold;
 
     &:hover {
@@ -335,7 +344,7 @@ const handleSettingClick = () => {
 
   &:hover > a {
     color: var(--text-main-color);
-    background: #f0f0f0;
+    background: #f0f2f4;
   }
 
   &:hover > span {

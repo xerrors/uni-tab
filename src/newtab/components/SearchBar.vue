@@ -76,7 +76,7 @@ watch(inputValue, (value) => {
 <style lang="less" scoped>
 .searchbar {
   width: 50vw;
-  max-width: 600px;
+  max-width: 680px;
   height: 52px;
   display: flex;
 
@@ -91,8 +91,8 @@ watch(inputValue, (value) => {
 
   &:focus-within {
     box-shadow: none;
-    outline: 2px solid #abddf1;
-    border-color: #6ac1e3;
+    outline: 2px solid var(--theme-color-80);
+    border-color: var(--theme-color);
   }
 
   & > span {
