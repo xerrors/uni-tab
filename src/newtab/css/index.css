@@ -28,10 +28,11 @@ button.c-btn-l {
 button.btn-secondry {
     background: white;
     color: var(--text-main-color);
+    border-color: var(--text-main-color);
 }
 button.btn-secondry:hover {
     color: var(--theme-color);
-    border-color: vat(--theme-color);   
+    border-color: var(--theme-color);   
 }
 
 .c-btn-text {

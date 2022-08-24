@@ -68,14 +68,15 @@ const handleClick = callback => {
   font-size: 0.8rem;
   line-height: 1rem;
   border-radius: 4px;
-  border: none;
+  border: 1px solid var(--text-main-color);
   cursor: pointer;
-  background-color: #f0f2f4;
-
+  background: white;
+  color: var(--text-main-color);
 }
 
 .c-checkbox .c-checkbox-action-primary {
-  background-color: #1a73e8;
+  background-color: var(--theme-color-60);
+  border-color: var(--theme-color);
   color: white;
 }
 </style>

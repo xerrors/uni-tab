@@ -11,75 +11,78 @@
     <form action="" class="opt-sync">
       <p class="opt-pri-name">同步设置</p>
       <span v-if="state.syncing" style="margin-right: 0.5rem"><loading-outlined /></span>
-      <span v-else class="c-btn-text" @click="syncConfigOpt" style="margin-right: 0.5rem">立即同步</span>
-      <span style="margin-right: 0.5rem">更新于：{{ state.sync.timeStamp ? state.formatedDate : ""}}</span> 
-      <span>状态：{{ state.syncing ? '同步中' : state.sync.type }}</span>
+      <span v-else-if="store.syncState.enableSync" 
+        type="button"
+        class="c-btn-text" 
+        @click="syncConfigOpt"
+        style="margin-right: 0.5rem"
+      >立即同步</span>
+      <span v-if="store.syncState.enableSync" style="margin-right: 0.5rem">
+        更新于：{{ state.formatedDate }}
+        状态：{{ store.syncState.type }}
+      </span> 
+      <span v-if="store.syncState.enableSync" class="c-btn-text" @click="clickToDisableSync">暂停同步</span>
       <label for="region">Region</label>
-      <input type="text" name="region" v-model="state.ossUserConfig.region">
+      <input type="text" name="region" v-model="store.ossConfig.region">
       <label for="bucket">Bucket Name</label>
-      <input type="text" name="bucket" v-model="state.ossUserConfig.bucket">
+      <input type="text" name="bucket" v-model="store.ossConfig.bucket">
       <label for="accessKeyId">AccessKey ID</label>
-      <input type="password" name="accessKeyId" v-model="state.ossUserConfig.accessKeyId">
+      <input type="text" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
       <label for="accessKeySecret">Accesskey Secret</label>
-      <input type="password" name="accessKeySecret" v-model="state.ossUserConfig.accessKeySecret">
+      <input type="text" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
+      <div class="oss-config-btn" v-if="!store.syncState.enableSync">
+        <button type="button" class="c-btn-m" @click="clickToEnableSync">保存并同步</button>
+        <button type="button" class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
+      </div>
+      <div class="oss-config-btn" v-else>
+        <button type="button" class="c-btn-m" @click="clickToSaveOssConfig">保存同步配置</button>
+      </div>
     </form>
     <form action="" class="opt-config">
       <p class="opt-pri-name">用户配置</p>
       <label for="engine" style="display: inline-block;">默认搜索引擎</label>
-      <select name="engine" v-model="userOptions.defaultSearchEngine">
+      <select name="engine" v-model="store.userConfig.defaultSearchEngine">
         <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">
           <span><icon-font :type="'icon-' + key"/> </span> {{ engine.name }}
         </option>
       </select>
-      <p>触发词：{{ userOptions.defaultSearchEngine && searchEngine[userOptions.defaultSearchEngine].keywords.join(", ")}}</p>
+      <p>触发词：{{ store.userConfig.defaultSearchEngine && searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
     </form>
   </div>
-  <div class="opt-submit">
-    <button class="c-btn-m" @click="saveOptions">保存</button>
-    <button class="c-btn-m btn-secondry" @click="$emit('hide-options')">取消</button>
-  </div>
+  <!-- <div class="opt-submit">
+    <button type="button" class="c-btn-m" @click="saveOptions">保存</button>
+    <button type="button" class="c-btn-m btn-secondry" @click="$emit('hide-options')">取消</button>
+  </div> -->
 </div>
 </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { saveAs } from 'file-saver'
-import { 
-  saveConfigToStorage, 
-  loadConfigFromStorage, 
-  loadSyncStateFromStorage, 
-  syncConfig
-} from '@/plugins/storage';
-import { 
-  createFromIconfontCN,
-  LoadingOutlined,
-} from "@ant-design/icons-vue";
+import { saveConfigToStorage, loadConfigFromStorage } from '@/plugins/storage';
+import { syncConfig } from '@/plugins/sync'
+import { LoadingOutlined } from "@ant-design/icons-vue";
 import { parseTime } from '@/utils/format';
-import { ossConfig } from '@/assets/configs/alioss';
 import { searchEngine } from "@/assets/configs/config";
-import { Message }  from "@/global-components"
+import { Message, IconFont, CheckBox }  from "@/global-components"
 
-const IconFont = createFromIconfontCN({
-  scriptUrl: '../../assets/icons/iconfont.js',
-});
+import {
+  saveStoreUserConfigToStorage,
+  saveStoreOSSConfigToStorage,
+  store,  
+saveStoreSyncStateToStorage} from '@/plugins/store';
 
 const fileInputBtn = ref(null);
-const userOptions = ref({});
 const userOptopnsElement = ref(null)
 
 const state = reactive({
-  sync: {},
   syncing: false,
-  ossUserConfig: {...ossConfig},
-  formatedDate: computed(() => parseTime(state.sync.timeStamp))
+  formatedDate: computed(() => parseTime(store.syncState.timeStamp, "{h}:{i}:{s}"))
 })
 
-console.log(state.ossUserConfig)
-
-onMounted(() => {
-  loadConfigFromStorage().then(res => userOptions.value = res)
-  loadSyncStateFromStorage().then(res => state.sync = res)
+watch(() => store.userConfig.defaultSearchEngine, () => {
+  saveStoreUserConfigToStorage()
 })
 
 const saveConfig = async () => {
@@ -100,9 +103,24 @@ const loadConfig = (event) => {
     reader.readAsText(files[0])
     reader.onload = (reader_res) => {
       const config = JSON.parse(reader_res.target.result)
-      saveConfigToStorage(config, false) 
-      location.reload();
+      if (config.timeStamp < store.userConfig.timeStamp) {
+        CheckBox.confirm({
+          content: "当前的版本("  + parseTime(store.userConfig.timeStamp) 
+            + ")要比导入的版本("  + parseTime(config.timeStamp) 
+            + ")要新，确定使用导入的配置版本覆盖现有的版本吗？",
+          confirm: () => {
+            store.userConfig = config
+            saveConfigToStorage(config, false)
+            Message.success("覆盖成功")
+          }
+        })
+      } else {
+          store.userConfig = config
+          saveConfigToStorage(config, false)
+          Message.success("导入成功")
+      }
     }
+    fileInputBtn.value.value = ""
   }
 }
 
@@ -110,22 +128,54 @@ const demoClick = () => {
   fileInputBtn.value.click()
 }
 
-const saveOptions = () => {
-  saveConfigToStorage(userOptions.value)
-  location.reload();
+// const saveOptions = () => {
+//   saveConfigToStorage(userOptions.value)
+//   location.reload();
+// }
+
+const syncConfigOpt = (isTest = false) => {
+  state.syncing = true
+  return new Promise((resolve, reject) => {
+    syncConfig(res => {
+      if (res.type == "failed") {
+        Message.error("同步失败")
+        state.syncing = false
+        reject(res)
+      } else {
+        Message.success("同步成功")
+        state.syncing = false
+        resolve(res)
+      }
+    }, isTest)
+  })
 }
 
-const syncConfigOpt = () => {
-  state.syncing = true
-  syncConfig(res => {
-    state.sync = res
-    Message.success({
-      content: "同步完成",
-      element: userOptopnsElement.value
-    })
-    state.syncing = false
-  } )
+const clickToDisableSync = () => {
+  store.syncState.enableSync = false
+  saveStoreSyncStateToStorage()
 }
+
+const clickToEnableSync = () => {
+  saveStoreOSSConfigToStorage()
+  if (!(store.ossConfig.region 
+        && store.ossConfig.bucket 
+        && store.ossConfig.accessKeyId 
+        && store.ossConfig.accessKeySecret)) {
+    Message.error("请完善 OSS 配置")
+  } else {
+    syncConfigOpt(true).then(() => {
+      store.syncState.enableSync = true
+      saveStoreSyncStateToStorage()
+    }).catch((err) => {
+      Message.error("与对象存储连接失败: " + err.msg)
+    })
+  }
+}
+
+const clickToSaveOssConfig = () => {
+  saveStoreOSSConfigToStorage()
+}
+
 </script>
 
 <style lang="less" scoped>
@@ -162,7 +212,7 @@ const syncConfigOpt = () => {
 
 .opt-header {
   display: flow-root;
-  margin: 2rem 0 1rem 0;
+  margin: 5rem 0 1rem 0;
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   background: var(--opt-bg-color);
@@ -181,10 +231,11 @@ const syncConfigOpt = () => {
     font-weight: normal;
   }
 }
-.opt-content {
-  min-height: calc(100vh - 10rem);
 
-}
+// for opt submit
+// .opt-content {
+//   min-height: calc(100vh - 10rem);
+// }
 
 .opt-content form {
   margin-bottom: 2rem;
@@ -194,15 +245,22 @@ const syncConfigOpt = () => {
   }
 }
 
-
-.opt-submit {
-  background-color: var(--opt-bg-color);
-  border-top: 1px solid var(--border-color);
-  position: sticky;
-  bottom: 0;
+.oss-config-btn{
   padding: 1rem 0;
   button {
     margin-right: 1rem;
   }
 }
+
+
+// .opt-submit {
+//   background-color: var(--opt-bg-color);
+//   border-top: 1px solid var(--border-color);
+//   position: sticky;
+//   bottom: 0;
+//   padding: 1rem 0;
+//   button {
+//     margin-right: 1rem;
+//   }
+// }
 </style>

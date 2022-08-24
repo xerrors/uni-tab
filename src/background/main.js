@@ -1,16 +1,15 @@
-// import hotReload from '@/utils/hotReload'
-// hotReload()
+import hotReload from '@/utils/hotReload'
+hotReload()
  
-import { saveSyncStateToStorage, syncConfig } from '@/plugins/storage'
+// import { syncConfig } from '@/plugins/sync'
+// console.log('hello world background')
 
-console.log('hello world background')
-
-setInterval(() => {
-    try {
-        syncConfig(res => {
-            saveSyncStateToStorage(res)
-        })
-    } catch (e) {
-        console.error(e)
-    }
-}, 10000)
+// setInterval(() => {
+//     try {
+//         syncConfig(res => {
+//             console.log(res.msg)
+//         })
+//     } catch (e) {
+//         console.error(e)
+//     }
+// }, 10000)

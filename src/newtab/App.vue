@@ -3,7 +3,7 @@
   <div class="demo"></div>
   <div :class="[{'show-option': state.show_options}, 'newtab']">
     <div class="header-ccontainer">
-      <search-bar :default-search-engine="userConfig.defaultSearchEngine"></search-bar>
+      <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
       <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
         <eye-invisible-outlined v-if="state.archiveMode"/>
         <eye-outlined v-else/>
@@ -17,7 +17,7 @@
     </div>
     <div :class="[{editable: state.edit_link, archived: state.archiveMode}, 'links-container']">
       <div :class="[{'is-archived': group.archive }, 'link-group']" 
-            v-for="group in userConfig.groupLinks" :key="group.name">
+            v-for="group in store.userConfig.groupLinks" :key="group.name">
         <div class="link-group-name">
           <span>{{ group.name }}</span>
           <span class="archive-btn link-group-btn" @click="archiveGroup(group.name)" v-if="state.archiveMode">
@@ -30,7 +30,7 @@
           class="links"
           :list="group.links"
           group="links"
-          @change="saveChangeToStorage"
+          @change="saveStoreUserConfigToStorage"
           itemKey="url"
           v-bind="state.dragOptions"
         >
@@ -47,7 +47,13 @@
           <plus-outlined />
         </div>
         <div ref="addInputBox" class="add-input" v-else>
-          <input type="text" ref="newGroupInputBox" v-model="state.newGroupName" @keyup.enter="addNewLinkGroup">
+          <input
+            type="text" 
+            ref="newGroupInputBox" 
+            id="link-add-input-box"
+            v-model="state.newGroupName" 
+            @keyup.enter="addNewLinkGroup"
+          >
           <button class="c-btn-m" @click="addNewLinkGroup">
             <check-outlined />
           </button>
@@ -57,7 +63,7 @@
     <read-list></read-list>
     <!-- <div>{{state}}</div> -->
   </div>
-  <user-options v-if="state.show_options" @hide-options="state.show_options=false" :ref="userOptopnsElement"></user-options>
+  <user-options v-if="state.show_options" @hide-options="state.show_options=false"></user-options>
 </div>
 </template>
  
@@ -69,12 +75,7 @@ import SearchBar from "./components/SearchBar.vue";
 import UserOptions from "./components/UserOptions.vue";
 import { onClickOutside } from '@vueuse/core';
 
-import { 
-  loadConfigFromStorage, 
-  saveConfigToStorage, 
-  modifyConfigViaStorage,
-  getConfigFromOSS,
-} from "@/plugins/storage"
+import { getConfigFromOSS } from "@/plugins/sync"
 
 import { 
   EyeInvisibleOutlined,
@@ -86,7 +87,13 @@ import {
   CheckOutlined,
 } from '@ant-design/icons-vue';
 
-import { Message }  from "@/global-components"
+import { CheckBox, Message }  from "@/global-components"
+import { 
+  saveStoreUserConfigToStorage,
+  loadStoreUserConfigFromStorage, 
+  loadStoreOSSConfigFromStorage,
+  loadStoreSyncStateFromStorage,
+  store } from "@/plugins/store"
 
 const state = reactive({
   newGroupName: "",
@@ -104,76 +111,59 @@ const state = reactive({
   }),
 })
 
-const userConfig = ref({})
 const addInputBox = ref(null)
 const newGroupInputBox = ref(null)
+const links = store.userConfig.groupLinks
 
 onClickOutside(addInputBox, () => state.addNewLinkGroup=false)
 
 onMounted(() => {
-  loadConfigTemp().then(res => {
-    if (res.timeStamp == 0) {
+  loadStoreSyncStateFromStorage()
+  loadStoreOSSConfigFromStorage()
+  loadStoreUserConfigFromStorage().then(() => {
+    if (store.userConfig.timeStamp == 0 && store.syncState.enableSync) {
       getConfigFromOSS().then(ossConfig => {
         console.log("init from oss")
-        userConfig.value = ossConfig
-        saveConfigToStorage(ossConfig)
-        location.reload()
+        store.userConfig = ossConfig
+        saveStoreUserConfigToStorage()
       }).catch(() => {
-        userConfig.value = res
+        Message.error("从 OSS 获取配置信息失败")
       })
-    }
-    else {
-      userConfig.value = res
     }
   })
 })
 
-const loadConfigTemp = () => {
-  return new Promise(callback => {
-    loadConfigFromStorage()
-    .then(config => {
-      callback(config)
-    })
-  })
-}
-
-const saveChangeToStorage = () => {
-  saveConfigToStorage(userConfig.value)
-}
-
 const archiveGroup = (groupName) => {
-  modifyConfigViaStorage(config => {
-    const group = config.groupLinks.find(item => item.name == groupName)
-    group.archive = !group.archive
-    userConfig.value = config
-    return config
-  })
+  const group = links.find(item => item.name == groupName)
+  group.archive = !group.archive
+  saveStoreUserConfigToStorage()
 }
 
 const delLinks = (groupName, url) => {
-  modifyConfigViaStorage(config => {
-    const group = config.groupLinks.find(item => item.name == groupName )
-    if (group) {
-      group.links.map((item, i) => {
-        if (item.url == url) {
-          group.links.splice(i, 1);
-        }
-      })
-    }
-    userConfig.value = config
-    return config
-  })
+  const group = links.find(item => item.name == groupName )
+  if (group) {
+    group.links.map((item, i) => {
+      if (item.url == url) {
+        group.links.splice(i, 1);
+      }
+    })
+    saveStoreUserConfigToStorage()
+  } else {
+    Message.error("Group: " + groupName + " 不存在")
+  }
 }
 
 const removeLinkGroup = (groupName) => {
-  modifyConfigViaStorage(config => {
-    config.groupLinks.map((item, i) => {
-      if (item.name == groupName) {
-        config.groupLinks.splice(i, 1);
-      }
-    })
-    userConfig.value = config
-    return config
+  CheckBox.confirm({
+    content: "是否要删除链接组「" + groupName + "」",
+    confirm: () => {
+      links.map((item, i) => {
+        if (item.name == groupName) {
+          links.splice(i, 1);
+        }
+      })
+      saveStoreUserConfigToStorage()
+    }
   })
 }
 
@@ -181,25 +171,21 @@ const clickToActiveInputBox = () => {
   state.addNewLinkGroup = true;
   setTimeout(() => {
     newGroupInputBox.value.focus();
-  }, 100)
+  }, 20)
 }
 
 const addNewLinkGroup = () => {
   const trimedName = state.newGroupName.trim()
-  modifyConfigViaStorage(config => {
-    if (config.groupLinks.map(g => g.name).indexOf(trimedName) >= 0 || !trimedName ) {
-      Message.error("Existed or Empty")
-      newGroupInputBox.value.focus();
-    } else {
-      const groupLength = config.groupLinks.length
-      const idx = config.groupLinks[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
-      config.groupLinks.splice(idx, 0, {name: trimedName, links: []})
-      state.addNewLinkGroup = false;
-      state.newGroupName = "";
-    }
-    userConfig.value = config
-    return config
-  })
+  if (links.map(g => g.name).indexOf(trimedName) >= 0 || !trimedName ) {
+    Message.error("Existed or Empty")
+    newGroupInputBox.value.focus();
+  } else {
+    const groupLength = links.length
+    const idx = links[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
+    links.splice(idx, 0, {name: trimedName, links: []})
+    state.addNewLinkGroup = false;
+    state.newGroupName = "";
+  }
 }
 
 const handleSettingClick = () => {
@@ -389,7 +375,7 @@ const handleSettingClick = () => {
 .add-group > .add-input {
   width: 100%;
 
-  & > input {
+  & > input[type=text]#link-add-input-box {
     display: inline-block;
     width: calc(var(--linkcard-width) - 70px);
   }

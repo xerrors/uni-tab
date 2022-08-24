@@ -14,12 +14,9 @@
 
 <script setup>
 import { reactive, ref, watch, defineProps } from "vue"
-import { createFromIconfontCN } from "@ant-design/icons-vue";
 import { searchEngine } from "@/assets/configs/config";
+import { IconFont } from "@/global-components";
 
-const IconFont = createFromIconfontCN({
-  scriptUrl: '../../assets/icons/iconfont.js',
-});
 
 const searchBarInput = ref(null)
 const props = defineProps(['defaultSearchEngine'])

@@ -1,26 +1,27 @@
 <template>
-  <div :class="[{'readlist-hidden': readlist.length == 0}, 'readlist-container']">
-    <div class="title">稍后阅读</div>
-      <div ref="readContainer" class="readlist">
-        <div class="read-item" v-for="(item, idx) in readlist" :key="idx">
-          <a class="read-card">
-            <a class="card__title" :href="item.url">{{ item.title }}</a>
-            <div class="card__info">
-              <span class="card__domain">{{ item.domain }}</span>
-              <span class="card__time">{{ item.fmtTime }}</span>
-              <button @click="delReadCard(item.url)">已读</button>
-            </div>
-          </a>
-        </div>
+  <div :class="[{ 'readlist-hidden': readlist.length == 0 }, 'readlist-container']">
+    <div class="title" @click="readContainer.scrollLeft = 0">稍后阅读</div>
+    <div ref="readContainer" class="readlist">
+      <div class="read-item" v-for="(item, idx) in readlist" :key="idx">
+        <a class="read-card">
+          <a class="card__title" :href="item.url">{{ item.title }}</a>
+          <div class="card__info">
+            <span class="card__domain">{{ item.domain }}</span>
+            <span class="card__time">{{ item.fmtTime }}</span>
+            <button @click="delReadCard(item.url)" id="readedBtn">已读</button>
+          </div>
+        </a>
       </div>
+    </div>
+    <div class="next"  @click="readContainer.scrollLeft += 192"> > </div>
   </div>
 </template>
 
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { loadConfigFromStorage, modifyConfigViaStorage } from "@/plugins/storage"
+import { onMounted, ref, watch } from "vue";
 import { formatTime } from "@/utils/format";
+import { store, saveStoreUserConfigToStorage } from "@/plugins/store";
 
 const readlist = ref([]);
 const readContainer = ref(null);
@@ -35,28 +36,27 @@ const praseReadlist = (list) => {
 }
 
 const delReadCard = (url) => {
-  modifyConfigViaStorage((config) => {
-    config.readList.map((item, i) => {
-      if (item.url == url) {
-        config.readList.splice(i, 1);
-      }
-    })
-    praseReadlist(config.readList)
-    return config
+  store.userConfig.readList.map((item, i) => {
+    if (item.url == url) {
+      store.userConfig.readList.splice(i, 1);
+    }
   })
+  praseReadlist(store.userConfig.readList)
+  saveStoreUserConfigToStorage()
 }
 
 onMounted(() => {
-  loadConfigFromStorage().then( config => {
-    praseReadlist(config.readList)
-  })
-
   readContainer.value.addEventListener("wheel", (event) => {
     event.preventDefault();
-    readContainer.value.scrollIntoView({behavior: 'smooth'})
+    readContainer.value.scrollIntoView({ behavior: 'smooth' })
     readContainer.value.scrollLeft += event.deltaY;
   });
 })
+
+watch(() => store.userConfig.readList, value => {
+  praseReadlist(value)
+})
+
 
 </script>
  
@@ -64,14 +64,16 @@ onMounted(() => {
 .readlist-container.readlist-hidden {
   display: none;
 }
+
 .readlist-container {
   width: 100%;
-  height: 170px;
+  height: var(--readcatd-height);
   display: flex;
   position: relative;
 
-  > * {
+  >* {
     height: 100%;
+    user-select: none;
   }
 
   .title {
@@ -90,15 +92,16 @@ onMounted(() => {
   &::before {
     z-index: 1;
     content: "";
-    width: 100px;
+    width: 60px;
     height: 100%;
     position: absolute;
-    right: 0;
-    background: linear-gradient(to right, rgba(0,0,0,0), #f9f9fb);
+    right: 40px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0), var(--bg-color));
   }
 }
 
 .readlist-container .readlist {
+  flex-grow: 1;
   position: relative;
   white-space: nowrap;
   overflow-x: scroll;
@@ -106,21 +109,25 @@ onMounted(() => {
   height: 100%;
   transition: all 0.1s;
   scroll-behavior: smooth;
-    
+  padding-right: 80px;
+
   &::-webkit-scrollbar {
-    display: none; /* Chrome Safari */
+    display: none;
+    /* Chrome Safari */
   }
-  scrollbar-width: none; /* Firefox */
+
+  scrollbar-width: none;
+  /* Firefox */
 }
 
-.readlist > .read-item {
-  width: 180px;
+.readlist>.read-item {
+  width: var(--readcard-width);
   display: inline-block;
   margin-left: 12px;
   height: 100%;
 }
 
-.readlist > .read-item > .read-card {
+.readlist>.read-item>.read-card {
   display: block;
   height: 100%;
   color: inherit;
@@ -141,24 +148,29 @@ onMounted(() => {
     overflow: hidden;
     white-space: break-spaces;
     text-overflow: ellipsis;
-    display:-webkit-box; 
-    -webkit-box-orient:vertical;
-    -webkit-line-clamp:3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
     transition: all 0.1s ease-in-out;
-    &:hover {
+  }
+
+  &:hover button#readedBtn {
+    cursor: pointer;
+    opacity: 1;
+  }
+
+  &:hover a.card__title {
       color: var(--theme-color-40);
       margin-top: 20px;
       margin-bottom: 12px;
-      // text-decoration: #ff7875 underline;
-    }
   }
 }
 
-.readlist > .read-item > .read-card > div.card__info {
+.readlist>.read-item>.read-card>div.card__info {
   padding: 0 12px;
   // background-color: antiquewhite;
 
-  & > * {
+  &>* {
     font-size: small;
     display: inline-block;
     line-height: 20px;
@@ -175,25 +187,34 @@ onMounted(() => {
   span.card__time {
     width: 100px;
   }
-    
+
   button {
     opacity: 0;
     margin-left: auto;
     float: right;
     border: none;
     background: transparent;
-    transition: all 0.1s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    color: var(--text-gray-color);
 
     &:hover {
       cursor: pointer;
       pointer-events: auto;
+      color: var(--text-secondry-color);
     }
   }
-  
-  
-  &:hover > button {
+}
+
+.readlist-container .next {
+    z-index: 2;
+    height: 100%;
+    width: 40px;
+    background: var(--bg-color);
+    text-align: center;
+    line-height: var(--readcatd-height);
+    user-select: none;
     cursor: pointer;
-    opacity: 1;
-  }
+    position: absolute;
+    right: 0;
 }
 </style>

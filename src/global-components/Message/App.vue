@@ -25,11 +25,7 @@
 
 <script setup>
 import { reactive, defineProps } from "vue";
-import { createFromIconfontCN } from "@ant-design/icons-vue";
-
-const IconFont = createFromIconfontCN({
-  scriptUrl: '../../assets/icons/iconfont.js', // iconfont.cn projects
-});
+import { IconFont } from "@/global-components"
 
 
 const props = defineProps({
