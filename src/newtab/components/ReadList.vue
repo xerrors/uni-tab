@@ -80,7 +80,7 @@ onMounted(() => {
     padding: 12px;
     box-sizing: border-box;
     box-shadow: 0 0 1px 1px rgb(0 0 0 / 5%);
-    border: 1px solid white;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     text-align: center;
     writing-mode: vertical-lr;
@@ -144,9 +144,12 @@ onMounted(() => {
     display:-webkit-box; 
     -webkit-box-orient:vertical;
     -webkit-line-clamp:3;
+    transition: all 0.1s ease-in-out;
     &:hover {
-      color: var(--text-main-color);
-      text-decoration: #ff7875 underline;
+      color: var(--theme-color-40);
+      margin-top: 20px;
+      margin-bottom: 12px;
+      // text-decoration: #ff7875 underline;
     }
   }
 }
@@ -160,7 +163,6 @@ onMounted(() => {
     display: inline-block;
     line-height: 20px;
     margin: 4px 0;
-
   }
 
   span.card__domain {

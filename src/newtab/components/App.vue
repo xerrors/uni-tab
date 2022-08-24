@@ -2,9 +2,10 @@
 <div id="main-container">
   <div :class="[{'show-option': state.show_options}, 'newtab']">
     <div class="header-ccontainer">
-      <search-bar></search-bar>
+      <search-bar :default-search-engine="userConfig.defaultSearchEngine"></search-bar>
       <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
-        <appstore-outlined />
+        <eye-invisible-outlined v-if="state.archiveMode"/>
+        <eye-outlined v-else/>
       </div>
       <div class="settings div-btn" @click="state.edit_link = !state.edit_link">
         <form-outlined />
@@ -40,6 +41,17 @@
           </template>
         </draggable>
       </div>
+      <div class="add-group">
+        <div class="add-btn" v-if="state.addNewLinkGroup==false" @click="clickToActiveInputBox">
+          <plus-outlined />
+        </div>
+        <div ref="addInputBox" class="add-input" v-else>
+          <input type="text" ref="newGroupInputBox" v-model="state.newGroupName" @keyup.enter="addNewLinkGroup">
+          <button class="c-btn-m" @click="addNewLinkGroup">
+            <check-outlined />
+          </button>
+        </div>
+      </div>
     </div>
     <read-list></read-list>
     <!-- <div>{{state}}</div> -->
@@ -54,6 +66,7 @@ import draggable from 'vuedraggable'
 import ReadList from "./ReadList.vue"
 import SearchBar from "./SearchBar.vue";
 import UserOptions from "./UserOptions.vue";
+import { onClickOutside } from '@vueuse/core';
 
 import { 
   loadConfigFromStorage, 
@@ -67,32 +80,18 @@ import {
   EyeOutlined,
   CloseCircleOutlined,
   SettingOutlined,
-  AppstoreOutlined,
   FormOutlined,
+  PlusOutlined,
+  CheckOutlined,
 } from '@ant-design/icons-vue';
 
 
 const state = reactive({
   newGroupName: "",
+  addNewLinkGroup: false,
   edit_link: false,
   show_options: false,
   archiveMode: false,
-  greet: computed(() => {
-    const time = new Date();
-    const hour = time.getHours();
-    if (hour < 2) { return "年轻人身体重要啊！" }
-    else if (hour < 4) { return "夜深了！头发要紧！" }
-    else if (hour < 8) { return "一大早就起来上班啦！" }
-    else if (hour < 10) { return "准备开启美好一天！" }
-    else if (hour < 12) { return "还差一会儿，坐等干饭！" }
-    else if (hour < 14) { return "中午好，吃完饭休息一会儿！" }
-    else if (hour < 16) { return "真是效率最高的时间段啊！" }
-    else if (hour < 18) { return "也该好好休息一下了！" }
-    else if (hour < 20) { return "好好学习一会儿！" }
-    else if (hour < 22) { return "若不是为了生活，早下班了！" }
-    else if (hour < 24) { return "看样子加班加的有点晚啦！" }
-    return "加油！";
-  }),
   dragOptions: computed(() => {
     return {
       animation: 200,
@@ -104,6 +103,10 @@ const state = reactive({
 })
 
 const userConfig = ref({})
+const addInputBox = ref(null)
+const newGroupInputBox = ref(null)
+
+onClickOutside(addInputBox, () => state.addNewLinkGroup=false)
 
 onMounted(() => {
   loadConfigTemp().then(res => {
@@ -172,20 +175,30 @@ const removeLinkGroup = (groupName) => {
   })
 }
 
+const clickToActiveInputBox = () => {
+  state.addNewLinkGroup = true;
+  setTimeout(() => {
+    newGroupInputBox.value.focus();
+  }, 100)
+}
 
-// const addNewLinkGroup = () => {
-//   modifyConfigViaStorage(config => {
-//     if (state.newGroupName in config.groupLinks.map(g => g.name) || !state.newGroupName ) {
-//       alert("Existed or Empty")
-//     } else {
-//       const groupLength = config.groupLinks.length
-//       const idx = config.groupLinks[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
-//       config.groupLinks.splice(idx, 0, {name: state.newGroupName, links: []})
-//     }
-//     userConfig.value = config
-//     return config
-//   })
-// }
+const addNewLinkGroup = () => {
+  const trimedName = state.newGroupName.trim()
+  modifyConfigViaStorage(config => {
+    if (config.groupLinks.map(g => g.name).indexOf(trimedName) >= 0 || !trimedName ) {
+      alert("Existed or Empty")
+      newGroupInputBox.value.focus();
+    } else {
+      const groupLength = config.groupLinks.length
+      const idx = config.groupLinks[groupLength-1].name == "最近添加" ? groupLength - 1 : groupLength
+      config.groupLinks.splice(idx, 0, {name: trimedName, links: []})
+      state.addNewLinkGroup = false;
+      state.newGroupName = "";
+    }
+    userConfig.value = config
+    return config
+  })
+}
 
 const handleSettingClick = () => {
   state.show_options = !state.show_options;
@@ -217,7 +230,6 @@ const handleSettingClick = () => {
   box-sizing: border-box;
   // position: relative;
 }
-
 
 .div-btn {
   font-size: 16px;
@@ -300,7 +312,7 @@ const handleSettingClick = () => {
       cursor: pointer;
     }
     span.remove-btn {
-      color: #ff7875;
+      color: hsl(1, 100%, 60%);
       position: absolute;
       right: 0;
     }
@@ -336,7 +348,6 @@ const handleSettingClick = () => {
   & > span {
     display: none;
     cursor: pointer;
-    color: #ff7875;
     text-decoration-line: none;
     float: right;
     text-align: right;
@@ -349,6 +360,40 @@ const handleSettingClick = () => {
 
   &:hover > span {
     background: #fff1f0;
+    color: hsl(1, 100%, 60%);;
+  }
+}
+
+.links-container > .add-group {
+  display: none;
+}
+
+.links-container.editable, .links-container.archived {
+  & > .add-group {
+    display: block;
+  }
+}
+
+.add-group > .add-btn {
+  width: 100%;
+  font-size: 1rem;
+  line-height: 2rem;
+  box-sizing: border-box;
+  border: 1px dashed var(--border-color-darker);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.add-group > .add-input {
+  width: 100%;
+
+  & > input {
+    display: inline-block;
+    width: calc(var(--linkcard-width) - 70px);
+  }
+
+  & > button {
+    margin-left: 1rem;
   }
 }
 

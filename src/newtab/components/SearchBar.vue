@@ -8,13 +8,15 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from "vue"
+import { reactive, ref, watch, defineProps } from "vue"
 import { createFromIconfontCN } from "@ant-design/icons-vue";
+import { searchEngine } from "@/assets/configs/config";
 
 const IconFont = createFromIconfontCN({
   scriptUrl: '../../assets/icons/iconfont.js',
 });
 
+const props = defineProps(['defaultSearchEngine'])
 const state = reactive({
   engine: "google",
 })
@@ -25,40 +27,7 @@ const onSearch = () => {
   }
 }
 
-const searchEngine = {
-  baidu: {
-    url: "https://www.baidu.com/s?wd=",
-    keywords: ["百度", "baidu"]
-  },
-  google: {
-    url: "https://google.com/search?q=",
-    keywords: ["谷歌", "google"]
-  },
-  bing: {
-    url: "https://www.bing.com/search?q=",
-    keywords: ["必应", "bing"]
-  },
-  github: {
-    url: "https://github.com/search?q=",
-    keywords: ["github"]
-  },
-  dblp: {
-    url: "https://dblp.org/search?q=",
-    keywords: ["dblp", "dplb"]
-  },
-  weixin: {
-    url: "https://weixin.sogou.com/weixin?type=2&query=",
-    keywords: ["微信", "weixin", "wechat", "公众号", "gongzhonghao"]
-  },
-  zhihu: {
-    url: "https://www.zhihu.com/search?type=content&q=",
-    keywords: ["知乎", "zhihu"]
-  },
-  googlescholar: {
-    url: "https://scholar.google.com/scholar?q=",
-    keywords: ["学术", "xueshu", "scholar"]
-  }
-}
+
 watch(inputValue, (value) => {
   for (var engine in searchEngine) {
     const info = searchEngine[engine];
@@ -69,6 +38,10 @@ watch(inputValue, (value) => {
       }
     });
   }
+})
+
+watch(() => props.defaultSearchEngine, (value) => {
+  state.engine = value;
 })
 
 </script>
@@ -110,6 +83,7 @@ watch(inputValue, (value) => {
     width: 100%;
     height: 100%;
     display: inline-block;
+    background-color: white;
     border: none;
     outline: none;
     font-size: 1rem;

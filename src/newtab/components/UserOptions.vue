@@ -23,14 +23,12 @@
     </form>
     <form action="" class="opt-config">
       <p class="opt-pri-name">用户配置</p>
-      <label for="region">Region</label>
-      <input type="text" name="region">
-      <label for="bucket">Bucket Name</label>
-      <input type="text" name="bucket">
-      <label for="accesskeyId">AccessKey ID</label>
-      <input type="text" name="accesskeySecret">
-      <label for="accesskeySecret">Accesskey Secret</label>
-      <input type="text" name="accesskeySecret">
+      <label for="engine" style="display: inline-block;">默认搜索引擎</label>
+      <select name="engine" v-model="userOptions.defaultSearchEngine">
+        <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">
+          <span><icon-font :type="'icon-' + key"/> </span> {{ engine.name }}
+        </option>
+      </select>
     </form>
   </div>
   <div class="opt-submit">
@@ -51,6 +49,12 @@ import {
 } from '@/plugins/storage';
 import { parseTime } from '@/utils/format';
 import { ossConfig } from '@/assets/configs/alioss';
+import { createFromIconfontCN } from "@ant-design/icons-vue";
+import { searchEngine } from "@/assets/configs/config";
+
+const IconFont = createFromIconfontCN({
+  scriptUrl: '../../assets/icons/iconfont.js',
+});
 
 const fileInputBtn = ref(null);
 const userOptions = ref({});
@@ -165,34 +169,11 @@ const syncConfigOpt = () => {
     font-size: 1rem;
     font-weight: bold;
   }
-
-  label, input[type=text], input[type=password] {
-    display: block;
-    font-size: 0.8rem
-  }
-
-  label {
-    font-weight: bold;
-    margin: 0.8rem 0 0.4rem 0;
-  }
-
-  input[type=text], input[type=password] {
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    width: 100%;
-    line-height: 1rem;
-    padding: 0.5rem;
-
-    &:focus {
-      background-color: var(--opt-bg-color);
-      outline-color: var(--theme-color);
-    }
-  }
 }
 
 
 .opt-submit {
+  background-color: var(--opt-bg-color);
   border-top: 1px solid var(--border-color);
   position: sticky;
   bottom: 0;
