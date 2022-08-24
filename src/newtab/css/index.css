@@ -44,17 +44,22 @@ button.btn-secondry:hover {
 }
 
 
-label, input[type=text], input[type=password], select {
+#crx-newtab label, 
+#crx-newtab input[type=text], 
+#crx-newtab input[type=password], 
+#crx-newtab select {
     display: block;
     font-size: 0.8rem;
 }
 
-label {
+#crx-newtab label {
     font-weight: bold;
     margin: 0.8rem 0 0.4rem 0;
 }
 
-input[type=text], input[type=password], select {
+#crx-newtab input[type=text],
+#crx-newtab input[type=password], 
+#crx-newtab select {
     background: var(--bg-color);
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -64,7 +69,9 @@ input[type=text], input[type=password], select {
     box-sizing: border-box;
 }
 
-input[type=text]:focus, input[type=password]:focus, select:focus {
+#crx-newtab input[type=text]:focus, 
+#crx-newtab input[type=password]:focus, 
+#crx-newtab select:focus {
     background-color: var(--opt-bg-color);
     outline-color: var(--theme-color);
 }

@@ -1,4 +1,5 @@
 <template>
+<div class="opt-box" ref="userOptopnsElement">
 <div class="options-container">
   <div class="opt-header">
     <h2>用户设置选项</h2>
@@ -9,9 +10,10 @@
   <div class="opt-content">
     <form action="" class="opt-sync">
       <p class="opt-pri-name">同步设置</p>
-      <span class="c-btn-text" @click="syncConfigOpt" style="margin-right: 1rem">立即同步</span>
+      <span v-if="state.syncing" style="margin-right: 0.5rem"><loading-outlined /></span>
+      <span v-else class="c-btn-text" @click="syncConfigOpt" style="margin-right: 0.5rem">立即同步</span>
       <span style="margin-right: 0.5rem">更新于：{{ state.sync.timeStamp ? state.formatedDate : ""}}</span> 
-      <span>状态：{{ state.sync.type }}</span>
+      <span>状态：{{ state.syncing ? '同步中' : state.sync.type }}</span>
       <label for="region">Region</label>
       <input type="text" name="region" v-model="state.ossUserConfig.region">
       <label for="bucket">Bucket Name</label>
@@ -29,12 +31,14 @@
           <span><icon-font :type="'icon-' + key"/> </span> {{ engine.name }}
         </option>
       </select>
+      <p>触发词：{{ userOptions.defaultSearchEngine && searchEngine[userOptions.defaultSearchEngine].keywords.join(", ")}}</p>
     </form>
   </div>
   <div class="opt-submit">
     <button class="c-btn-m" @click="saveOptions">保存</button>
     <button class="c-btn-m btn-secondry" @click="$emit('hide-options')">取消</button>
   </div>
+</div>
 </div>
 </template>
 
@@ -47,10 +51,14 @@ import {
   loadSyncStateFromStorage, 
   syncConfig
 } from '@/plugins/storage';
+import { 
+  createFromIconfontCN,
+  LoadingOutlined,
+} from "@ant-design/icons-vue";
 import { parseTime } from '@/utils/format';
 import { ossConfig } from '@/assets/configs/alioss';
-import { createFromIconfontCN } from "@ant-design/icons-vue";
 import { searchEngine } from "@/assets/configs/config";
+import { Message }  from "@/global-components"
 
 const IconFont = createFromIconfontCN({
   scriptUrl: '../../assets/icons/iconfont.js',
@@ -58,9 +66,11 @@ const IconFont = createFromIconfontCN({
 
 const fileInputBtn = ref(null);
 const userOptions = ref({});
+const userOptopnsElement = ref(null)
 
 const state = reactive({
   sync: {},
+  syncing: false,
   ossUserConfig: {...ossConfig},
   formatedDate: computed(() => parseTime(state.sync.timeStamp))
 })
@@ -90,7 +100,7 @@ const loadConfig = (event) => {
     reader.readAsText(files[0])
     reader.onload = (reader_res) => {
       const config = JSON.parse(reader_res.target.result)
-      saveConfigToStorage(config, false)
+      saveConfigToStorage(config, false) 
       location.reload();
     }
   }
@@ -106,21 +116,34 @@ const saveOptions = () => {
 }
 
 const syncConfigOpt = () => {
-  syncConfig(res => state.sync = res )
+  state.syncing = true
+  syncConfig(res => {
+    state.sync = res
+    Message.success({
+      content: "同步完成",
+      element: userOptopnsElement.value
+    })
+    state.syncing = false
+  } )
 }
 </script>
 
 <style lang="less" scoped>
+.opt-box {
+  position: relative;
+  width: var(--option-width);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
 
 .options-container {
   --opt-bg-color: white;
 }
 
 .options-container {
-  width: var(--option-width);
-  height: 100vh;
-  position: sticky;
-  top: 0;
+  height: 100%;
+  width: 100%;
   overflow-y: scroll;
   padding: 0 2rem;
   box-sizing: border-box;

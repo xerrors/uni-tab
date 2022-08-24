@@ -56,7 +56,7 @@
     <read-list></read-list>
     <!-- <div>{{state}}</div> -->
   </div>
-  <user-options v-if="state.show_options" @hide-options="state.show_options=false"></user-options>
+  <user-options v-if="state.show_options" @hide-options="state.show_options=false" :ref="userOptopnsElement"></user-options>
 </div>
 </template>
  
@@ -85,6 +85,7 @@ import {
   CheckOutlined,
 } from '@ant-design/icons-vue';
 
+import { Message }  from "@/global-components"
 
 const state = reactive({
   newGroupName: "",
@@ -186,7 +187,7 @@ const addNewLinkGroup = () => {
   const trimedName = state.newGroupName.trim()
   modifyConfigViaStorage(config => {
     if (config.groupLinks.map(g => g.name).indexOf(trimedName) >= 0 || !trimedName ) {
-      alert("Existed or Empty")
+      Message.error("Existed or Empty")
       newGroupInputBox.value.focus();
     } else {
       const groupLength = config.groupLinks.length

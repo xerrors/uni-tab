@@ -3,7 +3,12 @@
   <span>
     <icon-font :type="'icon-' + state.engine"/>
   </span>
-  <input type="text" placeholder="Search Here" @keyup.enter="onSearch" v-model="inputValue">
+  <input 
+    type="text" 
+    ref="searchBarInput"
+    v-model="inputValue"
+    placeholder="Search Here" 
+    @keyup.enter="onSearch" >
 </div>
 </template>
 
@@ -16,6 +21,7 @@ const IconFont = createFromIconfontCN({
   scriptUrl: '../../assets/icons/iconfont.js',
 });
 
+const searchBarInput = ref(null)
 const props = defineProps(['defaultSearchEngine'])
 const state = reactive({
   engine: "google",
@@ -26,7 +32,6 @@ const onSearch = () => {
     window.location.href = searchEngine[state.engine].url + inputValue.value
   }
 }
-
 
 watch(inputValue, (value) => {
   for (var engine in searchEngine) {
@@ -47,7 +52,7 @@ watch(() => props.defaultSearchEngine, (value) => {
 </script>
 
 <style lang="less" scoped>
-.searchbar {
+#crx-newtab .searchbar {
   width: 50vw;
   max-width: 680px;
   height: 52px;
@@ -79,7 +84,7 @@ watch(() => props.defaultSearchEngine, (value) => {
     color: var(--text-gray-color);
   }
 
-  input {
+  input[type=text] {
     width: 100%;
     height: 100%;
     display: inline-block;
