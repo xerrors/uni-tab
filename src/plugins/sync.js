@@ -120,7 +120,7 @@ export async function syncConfig(callback, config = {}) {
             }
     
             else if (configLocal.timeStamp > configRemote.timeStamp) {
-                putConfigToOSS(configLocal).then(() => {
+                await putConfigToOSS(configLocal).then(() => {
                     store.syncState.msg = "repace remote"
                     store.syncState.type = "replace remote"
                     store.syncState.lastType = "replace remote"
@@ -142,6 +142,7 @@ export async function syncConfig(callback, config = {}) {
         console.log(store.syncState.enableSync)
         console.log(store.ossConfig)
     }
+
     if (store.syncState.type == "syncing") {
         store.syncState.type = "failed"
     }
