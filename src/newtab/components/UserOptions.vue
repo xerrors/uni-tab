@@ -4,24 +4,17 @@
   <div class="opt-header">
     <h2>用户设置选项</h2>
     <input type="file" id="fileInput" ref="fileInputBtn" @change="loadConfig" style="display: none;">
-    <h2 class="c-btn-text" @click="saveConfig"> 保存 </h2>
+    <h2 class="c-btn-text" @click="saveConfig"> 导出 </h2>
     <h2 class="c-btn-text" @click="demoClick">  导入 </h2>
   </div>
   <div class="opt-content">
     <form action="" class="opt-sync">
-      <p class="opt-pri-name">同步设置</p>
-      <span v-if="state.syncing" style="margin-right: 0.5rem"><loading-outlined /></span>
-      <span v-else-if="store.syncState.enableSync" 
-        type="button"
-        class="c-btn-text" 
-        @click="syncConfigOpt"
-        style="margin-right: 0.5rem"
-      >立即同步</span>
+      <p class="opt-pri-name">阿里云 OSS 同步设置</p>
+      <span v-if="store.syncState.enableSync" class="sync-dot" :style="{background: state.syncDotColor}"></span>
       <span v-if="store.syncState.enableSync" style="margin-right: 0.5rem">
         更新于：{{ state.formatedDate }}
         状态：{{ store.syncState.type }}
       </span> 
-      <span v-if="store.syncState.enableSync" class="c-btn-text" @click="clickToDisableSync">暂停同步</span>
       <label for="region">Region</label>
       <input type="text" name="region" v-model="store.ossConfig.region">
       <label for="bucket">Bucket Name</label>
@@ -30,12 +23,14 @@
       <input type="text" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
       <label for="accessKeySecret">Accesskey Secret</label>
       <input type="text" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
-      <div class="oss-config-btn" v-if="!store.syncState.enableSync">
-        <button type="button" class="c-btn-m" @click="clickToEnableSync">保存并同步</button>
-        <button type="button" class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
-      </div>
-      <div class="oss-config-btn" v-else>
-        <button type="button" class="c-btn-m" @click="clickToSaveOssConfig">保存同步配置</button>
+
+      <div class="oss-config-btn">
+        <button type="button" class="c-btn-m" @click="clickToEnableSync">
+          <span v-if="state.syncing" style="margin-right: 0.5rem"><loading-outlined /></span>
+          {{ store.syncState.enableSync ? "立即同步":"启用同步" }}
+        </button>
+        <button type="button" v-if="store.syncState.enableSync" class="c-btn-m btn-secondry" @click="clickToDisableSync">暂停自动同步</button>
+        <button type="button" v-else class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
       </div>
     </form>
     <form action="" class="opt-config">
@@ -61,7 +56,7 @@
 import { ref, reactive, computed, watch } from 'vue';
 import { saveAs } from 'file-saver'
 import { saveConfigToStorage, loadConfigFromStorage } from '@/plugins/storage';
-import { syncConfig } from '@/plugins/sync'
+import { syncConfig, generateOSS } from '@/plugins/sync'
 import { LoadingOutlined } from "@ant-design/icons-vue";
 import { parseTime } from '@/utils/format';
 import { searchEngine } from "@/assets/configs/config";
@@ -78,6 +73,7 @@ const userOptopnsElement = ref(null)
 
 const state = reactive({
   syncing: false,
+  syncDotColor: computed(() => store.syncState.type == "failed" ? "#f83b33":"#50fa77"),
   formatedDate: computed(() => parseTime(store.syncState.timeStamp, "{h}:{i}:{s}"))
 })
 
@@ -89,7 +85,7 @@ const saveConfig = async () => {
   loadConfigFromStorage().then(config => {
     const content = JSON.stringify(config);
     const blob = new Blob([content ], {type: "text/plain;charset=utf-8"}); 
-    saveAs(blob, "chuan.config")
+    saveAs(blob, "chuan_config.json")
   })
 }
 
@@ -133,23 +129,6 @@ const demoClick = () => {
 //   location.reload();
 // }
 
-const syncConfigOpt = (isTest = false) => {
-  state.syncing = true
-  return new Promise((resolve, reject) => {
-    syncConfig(res => {
-      if (res.type == "failed") {
-        Message.error("同步失败")
-        state.syncing = false
-        reject(res)
-      } else {
-        Message.success("同步成功")
-        state.syncing = false
-        resolve(res)
-      }
-    }, isTest)
-  })
-}
-
 const clickToDisableSync = () => {
   store.syncState.enableSync = false
   saveStoreSyncStateToStorage()
@@ -163,16 +142,27 @@ const clickToEnableSync = () => {
         && store.ossConfig.accessKeySecret)) {
     Message.error("请完善 OSS 配置")
   } else {
-    syncConfigOpt(true).then(() => {
-      store.syncState.enableSync = true
-      saveStoreSyncStateToStorage()
-    }).catch((err) => {
-      Message.error("与对象存储连接失败: " + err.msg)
-    })
+    const config = {
+      isTest: true,
+      reconnect: true,
+    }
+    state.syncing = true
+    syncConfig(res => {
+      if (res.type == "failed") {
+        state.syncing = false
+        Message.error("与对象存储连接失败: " + res.msg)
+      } else {
+        store.syncState.enableSync = true
+        saveStoreSyncStateToStorage()
+        state.syncing = false
+        Message.success("同步成功")
+      }
+    }, config)
   }
 }
 
 const clickToSaveOssConfig = () => {
+  generateOSS()
   saveStoreOSSConfigToStorage()
 }
 
@@ -230,12 +220,24 @@ const clickToSaveOssConfig = () => {
     margin-left: 0.5rem;
     font-weight: normal;
   }
+
 }
 
 // for opt submit
 // .opt-content {
 //   min-height: calc(100vh - 10rem);
 // }
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  line-height: 100%;
+  margin-right: 4px;
+  border: 1px solid white;
+  box-shadow: 0 0 2px 2px rgb(0 0 0 / 5%);
+}
 
 .opt-content form {
   margin-bottom: 2rem;

@@ -30,6 +30,7 @@ export function modifyConfigViaStorage(intermater) {
                 res.config = JSON.parse(res.config)
                 const configOut = intermater(res.config)
                 saveConfigToStorage(configOut)
+                resolve(res.config)
             } else {
                 reject("no local config")
             }

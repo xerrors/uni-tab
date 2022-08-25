@@ -33,14 +33,14 @@ export function saveStoreOSSConfigToStorage() {
 }
 
 export function loadStoreOSSConfigFromStorage() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         loadOSSConfigFromStorage().then(res => {
             store.ossConfig = res
-            resolve(res)
-        }).catch(err => {
+            resolve(store.ossConfig)
+        }).catch(() => {
             console.log("no ossConfig found local.")
             store.ossConfig = {}
-            reject(err)
+            resolve(store.ossConfig)
         })
     })
 }
@@ -50,12 +50,10 @@ export function saveStoreSyncStateToStorage() {
 }
 
 export function loadStoreSyncStateFromStorage() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         loadSyncStateFromStorage().then(res => {
             store.syncState = res
             resolve(res)
-        }).catch(err => {
-            reject(err)
         })
     })
 }

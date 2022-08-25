@@ -75,8 +75,6 @@ import SearchBar from "./components/SearchBar.vue";
 import UserOptions from "./components/UserOptions.vue";
 import { onClickOutside } from '@vueuse/core';
 
-import { getConfigFromOSS } from "@/plugins/sync"
-
 import { 
   EyeInvisibleOutlined,
   EyeOutlined,
@@ -93,7 +91,9 @@ import {
   loadStoreUserConfigFromStorage, 
   loadStoreOSSConfigFromStorage,
   loadStoreSyncStateFromStorage,
-  store } from "@/plugins/store"
+  store
+} from "@/plugins/store"
+import { syncConfig } from "@/plugins/sync";
 
 const state = reactive({
   newGroupName: "",
@@ -118,20 +118,28 @@ const links = store.userConfig.groupLinks
 onClickOutside(addInputBox, () => state.addNewLinkGroup=false)
 
 onMounted(() => {
-  loadStoreSyncStateFromStorage()
-  loadStoreOSSConfigFromStorage()
-  loadStoreUserConfigFromStorage().then(() => {
-    if (store.userConfig.timeStamp == 0 && store.syncState.enableSync) {
-      getConfigFromOSS().then(ossConfig => {
-        console.log("init from oss")
-        store.userConfig = ossConfig
-        saveStoreUserConfigToStorage()
-      }).catch(() => {
-        Message.error("从 OSS 获取配置信息失败")
-      })
+  loadStoreSyncStateFromStorage().then(() => {
+    if (store.syncState.enableSync) {
+      mountSync()
+    }
+    else {
+      loadStoreOSSConfigFromStorage()
+      loadStoreUserConfigFromStorage()
     }
   })
 })
+
+const mountSync = async () => {
+  await loadStoreOSSConfigFromStorage()
+  syncConfig(res => {
+    if (res.type == "failed") {
+      console.log("自动同步失败：" + res.msg)
+    }
+    
+    loadStoreUserConfigFromStorage()
+  })
+
+}
 
 const archiveGroup = (groupName) => {
   const group = links.find(item => item.name == groupName)

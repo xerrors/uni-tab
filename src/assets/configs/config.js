@@ -1,4 +1,4 @@
-export var defaultConfig = {
+export const defaultConfig = {
     name: "YuChuans",
     searchBar: true,
     timeStamp: 0,
@@ -13,9 +13,9 @@ export var defaultConfig = {
         }]
     }],
     readList: [{
-        title: "[2207.14393] LAD: Language Models as Data for Zero-Shot Dialog",
-        url: "https://arxiv.org/abs/2207.14393",
-        time: ""
+        title: "关于如何使用这个插件需要知道的一些事情",
+        url: "https://krance.notion.site/f560f9a308c944519faef3a327acc27b",
+        time: Date.parse(new Date())
     }]
 }
 

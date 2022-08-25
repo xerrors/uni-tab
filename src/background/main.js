@@ -1,5 +1,5 @@
-import hotReload from '@/utils/hotReload'
-hotReload()
+// import hotReload from '@/utils/hotReload'
+// hotReload()
  
 // import { syncConfig } from '@/plugins/sync'
 // console.log('hello world background')

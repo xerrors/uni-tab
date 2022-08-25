@@ -1,19 +1,23 @@
 import OSS from 'ali-oss';
 import { store, saveStoreOSSConfigToStorage } from '@/plugins/store';
 import { loadConfigFromStorage, saveConfigToStorage } from "@/plugins/storage"
+import { parseTime } from '@/utils/format';
 
 let oss;
 
+export function generateOSS() {
+    oss = new OSS(store.ossConfig);
+}
+
 // syncState
 export function loadSyncStateFromStorage() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         chrome.storage.sync.get(["sync"], res => {
             if (res.sync) {
                 res.sync = JSON.parse(res.sync)
                 resolve(res.sync)
             } else {
-                resolve({timeStamp: 0, type: null})
-                reject("init from default")
+                resolve({timeStamp: 0, enableSync: false})
             }
         })
     })
@@ -40,7 +44,6 @@ export function loadOSSConfigFromStorage() {
 }
 
 export function saveOSSConfigToStorage(ossConfig) {
-    console.log(ossConfig)
     const ossConfigFormatted = JSON.stringify(ossConfig)
     chrome.storage.sync.set({"ossConfig": ossConfigFormatted})
 }
@@ -77,15 +80,15 @@ export function putConfigToOSS(config) {
 }
 
 
-export async function syncConfig(callback, isTest = false) {
+export async function syncConfig(callback, config = {}) {
     store.syncState.timeStamp = Date.parse(new Date())
-    store.syncState.type = "failed"
-    store.syncState.msg = "success"
+    store.syncState.type = "syncing"
+    store.syncState.msg = ""
     
-    if ((store.syncState.enableSync || isTest) && store.ossConfig ) {
+    if ((store.syncState.enableSync || config.isTest) && store.ossConfig ) {
 
-        if (!oss) {
-            oss = new OSS(store.ossConfig);
+        if (!oss || config.reconnect) {
+            generateOSS()
         }
 
         let configLocal;
@@ -99,7 +102,6 @@ export async function syncConfig(callback, isTest = false) {
         catch(e) {
             console.log(e)
             console.log("sync failed")
-            store.syncState.type = "failed"
         }
 
         finally {
@@ -112,24 +114,24 @@ export async function syncConfig(callback, isTest = false) {
 
             else if (configLocal.timeStamp < configRemote.timeStamp) {
                 saveConfigToStorage(configRemote, false)
+                store.syncState.msg = "repace local"
                 store.syncState.type = "from remote"
                 store.syncState.lastType = "from remote"
-                console.log("repace local")
             }
     
             else if (configLocal.timeStamp > configRemote.timeStamp) {
                 putConfigToOSS(configLocal).then(() => {
+                    store.syncState.msg = "repace remote"
                     store.syncState.type = "replace remote"
                     store.syncState.lastType = "replace remote"
-                    console.log("repace remote")
                 }).catch(err => {
                     store.syncState.msg = "fail to putConfigToOSS()"
                     console.error(err)
-                    console.log("failed to replace remote")
                 })
             } 
     
             else {
+                store.syncState.msg = "Version: " + parseTime(store.userConfig.timeStamp)
                 store.syncState.type = "no change"
             }
         }
@@ -140,7 +142,11 @@ export async function syncConfig(callback, isTest = false) {
         console.log(store.syncState.enableSync)
         console.log(store.ossConfig)
     }
-
+    if (store.syncState.type == "syncing") {
+        store.syncState.type = "failed"
+    }
+    
+    console.log(store.syncState.msg)
     callback(store.syncState)
     saveStoreOSSConfigToStorage()
 }
