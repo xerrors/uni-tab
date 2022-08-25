@@ -24,7 +24,9 @@
             <eye-invisible-outlined v-if="group.archive"/>
             <eye-outlined v-else/>
           </span>
-          <span class="remove-btn link-group-btn" @click="removeLinkGroup(group.name)" v-if="state.edit_link">移除</span>
+          <span class="remove-btn link-group-btn" @click="removeLinkGroup(group.name)" v-if="state.edit_link">
+            移除
+          </span>
         </div>
         <draggable
           class="links"
@@ -289,6 +291,10 @@ const handleSettingClick = () => {
   width: 100%; 
   margin-bottom: 20px;
 
+  &:hover  .link-group-name span.remove-btn {
+    opacity: 1;
+  }
+
   .link-group-name {
     font-size: 1rem;
     height: 1.1rem;
@@ -310,7 +316,9 @@ const handleSettingClick = () => {
     span.remove-btn {
       color: hsl(1, 100%, 60%);
       position: absolute;
+      opacity: 0;
       right: 0;
+      transition: opacity 0.3s ease-in-out;
     }
     span.archive-btn {
       margin-left: 1rem;
