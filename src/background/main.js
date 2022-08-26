@@ -1,8 +1,9 @@
-// import hotReload from '@/utils/hotReload'
-// hotReload()
- 
+import hotReload from '@/utils/hotReload'
+hotReload()
+
+console.log('hello world background')
+
 // import { syncConfig } from '@/plugins/sync'
-// console.log('hello world background')
 
 // setInterval(() => {
 //     try {

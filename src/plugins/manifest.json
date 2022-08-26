@@ -29,7 +29,7 @@
 		{
 			"matches": ["http://*/*", "https://*/*"],
 			"css": ["css/popup.css", "css/newtab.css"],
-      		"js": ["js/chunk-vendors.js", "js/popup.js", "js/inject.js"],
+      		"js": ["js/chunk-vendors.js", "js/chunk-common.js", "js/popup.js", "js/inject.js"],
 			"run_at": "document_idle"
 		}
 	],

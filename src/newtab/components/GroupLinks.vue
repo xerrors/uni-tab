@@ -1,5 +1,4 @@
 <template>
-
   <div :class="[{ editable: props.editLink, archived: props.archiveMode }, 'links-container']">
     <div v-for="group in store.userConfig.groupLinks" :key="group.name"
       :class="[{ 'is-archived': group.archive }, 'link-group']" ref="linkGroupsRef">
@@ -281,7 +280,7 @@ const addDragListenerToGroups = () => {
       left: 0px;
       top: 0.6rem;
       border-radius: 2px;
-      z-index: 10;
+      z-index: 2;
       background-color: var(--theme-color);
     }
 

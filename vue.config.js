@@ -16,10 +16,10 @@ const copyFiles = [
         from: path.resolve("src/assets"),
         to: path.resolve("dist/assets")
       },
-      {
-        from: path.resolve("src/plugins/inject.js"),
-        to: path.resolve("dist/js")
-      },
+      // {
+      //   from: path.resolve("src/plugins/inject.js"),
+      //   to: path.resolve("dist/js")
+      // },
       // {
       //   from: path.resolve("src/background/main.js"),
       //   to: path.resolve("dist/js/background.js")
@@ -40,7 +40,7 @@ const plugins = [
 // 页面文件
 const pages = {};
 // 配置 popup.html 页面
-const chromeName = ["popup", "newtab", "background"];
+const chromeName = ["popup", "newtab", "background", "inject"];
  
 chromeName.forEach(name => {
       pages[name] = {

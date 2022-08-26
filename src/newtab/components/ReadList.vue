@@ -46,6 +46,7 @@ const delReadCard = (url) => {
 }
 
 onMounted(() => {
+  praseReadlist(store.userConfig.readList)
   readContainer.value.addEventListener("wheel", (event) => {
     event.preventDefault();
     readContainer.value.scrollIntoView({ behavior: 'smooth' })
