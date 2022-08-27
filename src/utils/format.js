@@ -71,7 +71,7 @@ export function convertImgToBase64(url, callback, outputFormat){
         canvas.width = img.width;
         ctx.drawImage(img,0,0);
         var dataURL = canvas.toDataURL(outputFormat || 'image/png');
-        callback.call(this, dataURL);
+        callback(dataURL);
         canvas = null; 
     };
     img.src = url;

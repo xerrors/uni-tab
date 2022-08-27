@@ -1,17 +1,17 @@
 <template>
-  <div id="crx-simpmode" ref="simpModeRef">
-    <div class="simpmode-action-btns">
-      <div class="random-src" @click="switchSrc">随机切换</div>
-      <div class="random-img" @click="switchImg">随机图片</div>
-      <div class="exit-simp-mode" @click="exitSimpMode">退出极简模式</div>
-    </div>
-    <div class="lazy-image" ref="lazyImageRef1"></div>
-    <div class="lazy-image" ref="lazyImageRef2"></div>
+  <div id="crx-simpmode" ref="simpModeRef"></div>
+  <div class="simpmode-action-btns">
+    <div class="random-src" @click="switchSrc">随机切换</div>
+    <div class="random-img" @click="switchImg">随机图片</div>
+    <div class="exit-simp-mode" @click="exitSimpMode">退出极简模式</div>
   </div>
+  <div class="lazy-image" ref="lazyImageRef1"></div>
+  <div class="lazy-image" ref="lazyImageRef2"></div>
 </template>
 
 <script setup>
 import { saveStoreUserConfigToStorage, store } from '@/plugins/store';
+import { convertImgToBase64 } from '@/utils/format';
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
 
@@ -47,11 +47,6 @@ onMounted(() => {
    * 这两个步骤缺一不可，如果不先设置为 0，而是直接在 css 样式中设置为 0 的话，是没有过渡效果的。
    * 如果不设置 timeout 直接设置为 1 的话，也是没有效果的。
    */
-  simpModeRef.value.style.opacity = 0 // 1
-  setTimeout(() => {
-    simpModeRef.value.style.opacity = 1
-  }, 1)
-
 })
 
 const switchSrc = () => {
@@ -76,8 +71,12 @@ const exitSimpMode = () => {
   saveStoreUserConfigToStorage();
 }
 
-const setpLoadImage = (callback, urls) => {
-  callback(urls.regular)
+// const setpLoadImage = (callback, urls) => {
+//   callback(urls.regular)
+// }
+
+const setpLoadImageCache = (callback, base64Img) => {
+  callback(base64Img)
 }
 
 const fetchRandomUnsplashFree = (callbacl) => {
@@ -98,18 +97,37 @@ const fetchUnsplashApi = (callback, params) => {
   }
   config.params.client_id = store.userConfig.simpModeOptions.client_id
 
-  chrome.storage.sync.get(["unsplashCache"], res => {
-    if (res.unsplashCache) {
-      setpLoadImage(callback, JSON.parse(res.unsplashCache))
+  // chrome.storage.local.get(["unsplashCache"], res => {
+  //   if (res.unsplashCache) {
+  //     setpLoadImage(callback, JSON.parse(res.unsplashCache))
+  //     console.log("use cache")
+  //   }
+
+  //   axios(config)
+  //     .then(axiosRes => {
+  //       if (!res.unsplashCache) {
+  //         setpLoadImage(callback, axiosRes.data.urls)
+  //       }
+  //       chrome.storage.local.set({ "unsplashCache": JSON.stringify(axiosRes.data.urls) })
+  //     })
+  //     .catch(err => {
+  //       console.log(err)
+  //     })
+  // })
+  chrome.storage.local.get(["imageCache"], res => {
+    if (res.imageCache) {
+      setpLoadImageCache(callback, JSON.parse(res.imageCache))
       console.log("use cache")
     }
 
     axios(config)
       .then(axiosRes => {
-        if (!res.unsplashCache) {
-          setpLoadImage(callback, axiosRes.data.urls)
-        }
-        chrome.storage.sync.set({ "unsplashCache": JSON.stringify(axiosRes.data.urls) })
+        convertImgToBase64(axiosRes.data.urls.regular, base64Img => {
+          if (!res.imageCache) {
+            setpLoadImageCache(callback, base64Img)
+          }
+          chrome.storage.local.set({ "imageCache": JSON.stringify(base64Img) })
+        })
       })
       .catch(err => {
         console.log(err)
@@ -133,7 +151,7 @@ const fetchUnsplashApi = (callback, params) => {
   background-position: center center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  transition: all 0.5s ease-in-out;
+  // transition: all 0.5s ease-in-out;
   animation: zoom-a 35s ease-out;
   animation-fill-mode: forwards;
   z-index: 9;
@@ -150,6 +168,7 @@ const fetchUnsplashApi = (callback, params) => {
   color: white;
   transition: all 0.5s ease-in-out;
   opacity: 0;
+  z-index: 10;
 
   >* {
     margin: 0 20px;
@@ -184,6 +203,7 @@ const fetchUnsplashApi = (callback, params) => {
 	3% { opacity: 1; }
 	100% { 
     transform: scaleX(1) translateZ(0); 
+    opacity: 1;
   }
 }
 </style>
