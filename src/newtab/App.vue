@@ -90,11 +90,12 @@ const mountSync = async () => {
 // 进入极简模型并存储
 const enterSimpMode = () => {
   store.userConfig.simpMode = true;
+  state.showOptions = false;
   saveStoreUserConfigToStorage();
 }
 
 document.addEventListener("keydown", function (e) {
-  if (e.shiftKey && (e.code == 'Space') && store.userConfig.simpMode) {
+  if (e.ctrlKey && (e.code == 'Space') && store.userConfig.simpMode) {
     SearchBarPop({name: "unitab"})
     e.preventDefault();
   }

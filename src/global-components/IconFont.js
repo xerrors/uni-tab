@@ -5,6 +5,5 @@ export const IconFont = createFromIconfontCN({
 });
 
 export const IconFontAli = createFromIconfontCN({
-    // scriptUrl: '//at.alicdn.com/t/c/font_3604250_nnwalqdmfp.js',
-    scriptUrl: '../assets/icons/iconfont.js',
+    scriptUrl: '//at.alicdn.com/t/c/font_3604250_nnwalqdmfp.js',
 });

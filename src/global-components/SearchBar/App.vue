@@ -1,12 +1,14 @@
 <template>
 <div :class="[{'plus-mode': props.config }, 'searchbar']" id="crx-unitab-searchbar" ref="searchBarRef">
-  <span class="search-icon">
+  <span class="search-icon" id="search-icon">
     <icon-font-ali :type="'icon-' + state.engine" v-if="props.config && props.config.name != 'unitab'"/>
     <icon-font :type="'icon-' + state.engine" v-else/>
   </span>
   <input 
     type="text" 
     ref="searchBarInput"
+    id="search-bar-input"
+    class="search-bar-input"
     v-model="inputValue"
     placeholder="Search Here" 
     @keyup.enter="onSearch" >
@@ -90,7 +92,7 @@ onMounted(() => {
 
 <style lang="less" scoped>
 
-#crx-unitab-searchbar.searchbar {
+div#crx-unitab-searchbar.searchbar {
   width: 50vw;
   max-width: 680px;
   height: 52px;
@@ -111,18 +113,17 @@ onMounted(() => {
     border-color: var(--theme-color);
   }
 
-  & > span.search-icon {
+  & > span#search-icon.search-icon {
     width: 42px;
     height: 42px;
     display: inline-block;
-    padding: 7px 0;
     box-sizing: border-box;
     font-size: 20px;
     text-align: center;
     color: var(--text-gray-color);
   }
 
-  input[type=text] {
+  input[type=text]#search-bar-input.search-bar-input {
     width: 100%;
     height: 100%;
     display: inline-block;
@@ -142,9 +143,11 @@ onMounted(() => {
 #crx-unitab-searchbar.plus-mode.searchbar {
   margin: 0 auto;
   box-shadow: 0 0px 30px rgb(0 0 0 / 20%);
-
-  span > span {
-    vertical-align: middle;
-  }
 }
+
+
+#crx-unitab-searchbar.searchbar > span#search-icon.search-icon > span {
+  vertical-align: -webkit-baseline-middle;
+}
+
 </style>

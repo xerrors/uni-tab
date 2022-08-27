@@ -42,6 +42,9 @@
         </option>
       </select>
       <p>触发词：{{ store.userConfig.defaultSearchEngine && searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
+      <label for="simpmmode">Unsplash Client ID</label>
+      <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id" @keyup.enter="saveStoreUserConfigToStorage">
+
     </form>
   </div>
   <!-- <div class="opt-submit">
