@@ -1,5 +1,6 @@
 <template>
   <div id="crx-simpmode" ref="simpModeRef"></div>
+  <div class="top-actions"></div>
   <div class="simpmode-action-btns">
     <div class="random-src" @click="switchSrc">随机切换</div>
     <div class="random-img" @click="switchImg">随机图片</div>
@@ -61,6 +62,7 @@ const switchSrc = () => {
 }
 
 const switchImg = () => {
+  console.log("Image Source: " + sources[store.userConfig.simpModeOptions.source].name)
   sources[store.userConfig.simpModeOptions.source].method(imageUrl => {
     simpModeRef.value.style.backgroundImage = "url(" + imageUrl + ")"
   })
@@ -70,10 +72,6 @@ const exitSimpMode = () => {
   store.userConfig.simpMode = false;
   saveStoreUserConfigToStorage();
 }
-
-// const setpLoadImage = (callback, urls) => {
-//   callback(urls.regular)
-// }
 
 const setpLoadImageCache = (callback, base64Img) => {
   callback(base64Img)
@@ -97,23 +95,6 @@ const fetchUnsplashApi = (callback, params) => {
   }
   config.params.client_id = store.userConfig.simpModeOptions.client_id
 
-  // chrome.storage.local.get(["unsplashCache"], res => {
-  //   if (res.unsplashCache) {
-  //     setpLoadImage(callback, JSON.parse(res.unsplashCache))
-  //     console.log("use cache")
-  //   }
-
-  //   axios(config)
-  //     .then(axiosRes => {
-  //       if (!res.unsplashCache) {
-  //         setpLoadImage(callback, axiosRes.data.urls)
-  //       }
-  //       chrome.storage.local.set({ "unsplashCache": JSON.stringify(axiosRes.data.urls) })
-  //     })
-  //     .catch(err => {
-  //       console.log(err)
-  //     })
-  // })
   chrome.storage.local.get(["imageCache"], res => {
     if (res.imageCache) {
       setpLoadImageCache(callback, JSON.parse(res.imageCache))
@@ -155,6 +136,20 @@ const fetchUnsplashApi = (callback, params) => {
   animation: zoom-a 35s ease-out;
   animation-fill-mode: forwards;
   z-index: 9;
+
+  &::after {
+    content: "";
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    
+    z-index: 10;
+    background: linear-gradient(180deg,rgba(0,0,0,.2) 0,transparent 20%,transparent 50%,rgba(0,0,0,.2));
+  }
 }
 
 .simpmode-action-btns {
