@@ -1,16 +1,16 @@
 <template>
-  <div :class="[{ editable: props.editLink, archived: props.archiveMode }, 'links-container']">
+  <div :class="[{ editable: props.editLink }, 'links-container']">
     <div v-for="group in store.userConfig.groupLinks" :key="group.name"
       :class="[{ 'is-archived': group.archive }, 'link-group']" ref="linkGroupsRef">
       <div :class="[{ 'dragged': dragGroupOptions.state }, 'link-group-name']" :draggable="dragGroupOptions.draggable">
         <span>{{ group.name }}</span>
-        <span class="archive-btn link-group-btn" @click="archiveGroup(group.name)" v-if="state.archiveMode">
+        <span class="archive-btn link-group-btn" @click="archiveGroup(group.name)" v-if="props.editLink">
           <eye-invisible-outlined v-if="group.archive" />
           <eye-outlined v-else />
         </span>
-        <span class="remove-btn link-group-btn" @click="removeLinkGroup(group.name)" v-if="state.edit_link">
+        <!-- <span class="remove-btn link-group-btn" @click="removeLinkGroup(group.name)" v-if="state.edit_link">
           移除
-        </span>
+        </span> -->
       </div>
       <draggable class="links" :list="group.links" group="links" @change="saveStoreUserConfigToStorage" itemKey="url"
         v-bind="state.dragOptions">
@@ -221,11 +221,11 @@ const addDragListenerToGroups = () => {
   margin-bottom: 50px;
 }
 
-.links-container>.is-archived {
+.links-container > .is-archived {
   display: none;
 }
 
-.links-container.archived>.is-archived {
+.links-container.editable>.is-archived {
   display: block;
 }
 
@@ -253,9 +253,9 @@ const addDragListenerToGroups = () => {
   user-select: none;
   // position: relative;
 
-  &:hover .link-group-name span.remove-btn {
-    opacity: 1;
-  }
+  // &:hover .link-group-name span.remove-btn {
+  //   opacity: 1;
+  // }
 
   .link-group-name {
     font-size: 1rem;
@@ -270,6 +270,11 @@ const addDragListenerToGroups = () => {
 
     &:hover {
       cursor: grab;
+    }
+
+    &:hover span.archive-btn {
+      background: #f0f9ff;
+      color: var(--theme-color);
     }
 
     &::before {
@@ -288,17 +293,23 @@ const addDragListenerToGroups = () => {
       cursor: pointer;
     }
 
-    span.remove-btn {
-      color: hsl(1, 100%, 60%);
-      position: absolute;
-      opacity: 0;
-      right: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
+    // span.remove-btn {
+    //   color: hsl(1, 100%, 60%);
+    //   position: absolute;
+    //   opacity: 0;
+    //   right: 0;
+    //   transition: opacity 0.3s ease-in-out;
+    // }
 
     span.archive-btn {
-      margin-left: 1rem;
       color: var(--text-main-color);
+      border-radius: 4px;
+      padding: 8px 10px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      line-height: 1rem;
+      transition: background 0.1s ease-in-out;
+      margin-left: auto;
     }
   }
 

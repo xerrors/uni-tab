@@ -1,6 +1,6 @@
 <template>
 <div :class="[{'plus-mode': props.config }, 'searchbar']" id="crx-unitab-searchbar" ref="searchBarRef">
-  <span class="search-icon" id="search-icon">
+  <span class="c-search-icon" id="c-search-icon">
     <icon-font-ali :type="'icon-' + state.engine" v-if="props.config && props.config.name != 'unitab'"/>
     <icon-font :type="'icon-' + state.engine" v-else/>
   </span>
@@ -109,11 +109,11 @@ div#crx-unitab-searchbar.searchbar {
   position: relative;
 
   &:focus-within {
-    outline: 2px solid var(--theme-color-80);
-    border-color: var(--theme-color);
+    outline: 2px solid var(--theme-color-60);
+    // border-color: var(--theme-color);
   }
 
-  & > span#search-icon.search-icon {
+  & > span#c-search-icon.c-search-icon {
     width: 42px;
     height: 42px;
     display: inline-block;
@@ -142,11 +142,11 @@ div#crx-unitab-searchbar.searchbar {
 
 #crx-unitab-searchbar.plus-mode.searchbar {
   margin: 0 auto;
-  box-shadow: 0 0px 30px rgb(0 0 0 / 20%);
+  box-shadow: rgb(0 0 0 / 20%) 0px 10px 100px 10px;
 }
 
 
-#crx-unitab-searchbar.searchbar > span#search-icon.search-icon > span {
+#crx-unitab-searchbar.searchbar > span#c-search-icon.c-search-icon > span {
   vertical-align: -webkit-baseline-middle;
 }
 

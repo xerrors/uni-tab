@@ -4,11 +4,11 @@
     <div :class="[{ 'show-option': state.showOptions }, 'newtab']" v-else-if="store.userConfig.name">
       <div class="header-ccontainer">
         <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
-        <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
+        <!-- <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
           <eye-invisible-outlined v-if="state.archiveMode" />
           <eye-outlined v-else />
-        </div>
-        <div class="settings div-btn" @click="state.editLink = !state.editLink">
+        </div> -->
+        <div class="settings div-btn" @click="state.editLink = !state.editLink" style="margin-left: auto">
           <form-outlined />
         </div>
         <div class="settings div-btn" @click="enterSimpMode">
@@ -18,7 +18,7 @@
           <setting-outlined />
         </div>
       </div>
-      <group-links :edit-link="state.editLink" :archive-mode="state.archiveMode"></group-links>
+      <group-links :edit-link="state.editLink"></group-links>
       <read-list></read-list>
     </div>
     <user-options v-if="state.showOptions" @hide-options="state.showOptions = false"></user-options>
@@ -37,8 +37,8 @@ import ReadList from "./components/ReadList.vue"
 import SimpMode from "./components/SimpMode.vue"
 
 import {
-  EyeInvisibleOutlined,
-  EyeOutlined,
+  // EyeInvisibleOutlined,
+  // EyeOutlined,
   SettingOutlined,
   FormOutlined,
   SendOutlined,
