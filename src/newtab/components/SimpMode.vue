@@ -39,22 +39,26 @@ const lazyImageRef2 = ref(null)
 const sources = [{
   name: 'unsplash-free',
   label: 'Unsplash Free',
-  method: () => fetchRandomUnsplashFree()
+  method: () => fetchRandomUnsplashFree('unsplash-free')
 }, {
   name: 'unsplash-api',
   label: 'Unsplash API',
-  method: () => fetchUnsplashApi({})
+  method: () => fetchUnsplashApi('unsplash-api', {
+    orientation: 'landscape',
+  })
 }, {
   name: 'unsplash-api-earth',
   label: 'Unsplash Google Earch',
-  method: () => fetchUnsplashApi({
-    collections: '1343739'
+  method: () => fetchUnsplashApi('unsplash-api-earth', {
+    collections: '1343739',
+    orientation: 'landscape',
   })
 }, {
   name: 'unsplash-api-oil-art',
   label: 'Unsplash Oil Art',
-  method: () => fetchUnsplashApi({
-    collections: 'h_xXYYzbisg'
+  method: () => fetchUnsplashApi('unsplash-api-oil-art', {
+    collections: 'h_xXYYzbisg',
+    orientation: 'landscape',
   })
 }]
 
@@ -106,21 +110,22 @@ const setpLoadImageCache = (base64Img) => {
   replaceBgImage(base64Img)
 }
 
-const fetchRandomUnsplashFree = () => {
-  chrome.storage.local.get(["wallpaperCache"], res => {
-    const cache = res["wallpaperCache"]
-    if (cache) {
+const fetchRandomUnsplashFree = (name) => {
+  chrome.storage.local.get(["wallpaperCache", "imageSrc"], res => {
+    const cache  = res.wallpaperCache
+    const canUseCache = cache && res.imageSrc && JSON.parse(res.imageSrc) == name
+    if (canUseCache) {
       setpLoadImageCache(JSON.parse(cache))
       console.log("use cache")
     }
     getRedirectLinkCallback("https://source.unsplash.com/random/", resURL => {
-      convertImageUrlToStorageByName(resURL, setpLoadImageCache, !cache)
+      convertImageUrlToStorageByName(resURL, name, setpLoadImageCache, !canUseCache)
     })
   })
 
 }
 
-const fetchUnsplashApi = (params) => {
+const fetchUnsplashApi = (name, params) => {
   const config = {
     method: "GET",
     url: "https://api.unsplash.com/photos/random",
@@ -128,9 +133,10 @@ const fetchUnsplashApi = (params) => {
   }
   config.params.client_id = store.userConfig.simpModeOptions.client_id || "brbgDcyKVK0ahmSJYXgM85P4hRnI8FmhDM4Fhtohrl0"
 
-  chrome.storage.local.get(['wallpaperCache'], res => {
+  chrome.storage.local.get(['wallpaperCache', "imageSrc"], res => {
     const cache  = res.wallpaperCache
-    if (cache) {
+    const canUseCache = cache && res.imageSrc && JSON.parse(res.imageSrc) == name
+    if (canUseCache) {
       setpLoadImageCache(JSON.parse(cache))
       console.log("use cache")
     }
@@ -138,18 +144,22 @@ const fetchUnsplashApi = (params) => {
     axios(config)
       .then(axiosRes => {
         const imageSizeUrl = getImageSizeUrl(axiosRes.data.urls)
-        convertImageUrlToStorageByName(imageSizeUrl, setpLoadImageCache, !cache)
+        convertImageUrlToStorageByName(imageSizeUrl, name, setpLoadImageCache, !canUseCache)
       })
       .catch(err => console.log(err))
   })
 }
 
-const convertImageUrlToStorageByName = (url, replace = false) => {
+const convertImageUrlToStorageByName = (url, name, callback, replace = false) => {
   convertImgToBase64(url, base64Img => {
     if (replace) {
-      setpLoadImageCache(base64Img)
+      console.log("replace")
+      callback(base64Img)
     }
-    chrome.storage.local.set({'wallpaperCache': JSON.stringify(base64Img)})
+    chrome.storage.local.set({
+      'wallpaperCache': JSON.stringify(base64Img),
+      'imageSrc': JSON.stringify(name)
+    })
   })
 }
 
