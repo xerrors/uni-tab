@@ -1,8 +1,8 @@
 <template>
   <div id="crx-simpmode" ref="simpModeRef"></div>
-  <div class="top-actions"></div>
+  <div class="top-actions">{{ state.src.label }}</div>
   <div class="simpmode-action-btns">
-    <div class="random-src" @click="switchSrc">随机切换</div>
+    <!-- <div class="random-src" @click="switchSrc">随机切换</div> -->
     <div class="random-img" @click="switchImg">随机图片</div>
     <div class="exit-simp-mode" @click="exitSimpMode">退出极简模式</div>
   </div>
@@ -13,7 +13,7 @@
 <script setup>
 import { saveStoreUserConfigToStorage, store } from '@/plugins/store';
 import { convertImgToBase64 } from '@/utils/format';
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
 
 const simpModeRef = ref(null)
@@ -21,49 +21,58 @@ const lazyImageRef1 = ref(null)
 const lazyImageRef2 = ref(null)
 
 const sources = [{
-  name: "Unsplash Free",
+  name: 'unsplash-free',
+  label: 'Unsplash Free',
   method: (callback) => fetchRandomUnsplashFree(callback)
 }, {
-  name: "Unsplash Api",
-  method: (callback) => fetchUnsplashApi(callback, {})
+  name: 'unsplash-api',
+  label: 'Unsplash API',
+  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api', {})
 }, {
-  name: "Unsplash Google Earch",
-  method: (callback) => fetchUnsplashApi(callback, {
-    collections: "1343739"
+  name: 'unsplash-api-earth',
+  label: 'Unsplash Google Earch',
+  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api-earth', {
+    collections: '1343739'
+  })
+}, {
+  name: 'unsplash-api-oil-art',
+  label: 'Unsplash Oil Art',
+  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api-oil-art', {
+    collections: 'h_xXYYzbisg'
   })
 }]
 
-onMounted(() => {
-
-  if (!store.userConfig.simpModeOptions) {
-    store.userConfig.simpModeOptions = { source: Math.floor(Math.random() * sources.length) }
-    saveStoreUserConfigToStorage()
-  }
-  switchImg()
-
-  // 下面这部分代码，只能用神奇来表示
-  /* 具体来说，当网页加载暗色调图片的时候，由于原本的网页背景是白色的，会有一瞬间的闪白
-   * 所以我想加一个 0.5s 的过渡效果（transition），但是如果直接在 mounded 的时候修改发现没有作用
-   * 于是阴差阳错的我使用了 setTimeOut 这个方法，先把透明度设置为 0， 然后延迟 1ms 再修改为 1。
-   * 这两个步骤缺一不可，如果不先设置为 0，而是直接在 css 样式中设置为 0 的话，是没有过渡效果的。
-   * 如果不设置 timeout 直接设置为 1 的话，也是没有效果的。
-   */
+const state = reactive({
+  src: sources[0]
 })
 
-const switchSrc = () => {
-  let temp;
-  do {
-    temp = Math.floor(Math.random() * sources.length)
-  } while (store.userConfig.simpModeOptions.source == temp)
-  console.log(sources[temp].name)
-  store.userConfig.simpModeOptions.source = temp
-  saveStoreUserConfigToStorage()
+onMounted(() => {
+  if (!store.userConfig.simpModeOptions) {
+    const randSrc = sources[Math.floor(Math.random() * sources.length)]
+    state.src = randSrc
+    store.userConfig.simpModeOptions = { source: randSrc.name, imageSize: "regular" }
+    saveStoreUserConfigToStorage()
+  } else {
+    const imageSrc = sources.find(item => item.name == store.userConfig.simpModeOptions.source)
+    state.src = imageSrc
+  }
+  console.log(state.src)
   switchImg()
-}
+})
+
+// const switchSrc = () => {
+//   let temp;
+//   do {
+//     temp = Math.floor(Math.random() * sources.length)
+//   } while (store.userConfig.simpModeOptions.source == temp)
+//   console.log(sources[temp].name)
+//   store.userConfig.simpModeOptions.source = temp
+//   saveStoreUserConfigToStorage()
+//   switchImg()
+// }
 
 const switchImg = () => {
-  console.log("Image Source: " + sources[store.userConfig.simpModeOptions.source].name)
-  sources[store.userConfig.simpModeOptions.source].method(imageUrl => {
+  state.src.method(imageUrl => {
     simpModeRef.value.style.backgroundImage = "url(" + imageUrl + ")"
   })
 }
@@ -87,35 +96,50 @@ const fetchRandomUnsplashFree = (callbacl) => {
   xhr.send()
 }
 
-const fetchUnsplashApi = (callback, params) => {
+const fetchUnsplashApi = (callback, name, params) => {
   const config = {
     method: "GET",
     url: "https://api.unsplash.com/photos/random",
     params: params
   }
-  config.params.client_id = store.userConfig.simpModeOptions.client_id
+  config.params.client_id = store.userConfig.simpModeOptions.client_id || "brbgDcyKVK0ahmSJYXgM85P4hRnI8FmhDM4Fhtohrl0"
 
-  chrome.storage.local.get(["imageCache"], res => {
-    if (res.imageCache) {
-      setpLoadImageCache(callback, JSON.parse(res.imageCache))
-      console.log("use cache")
+  chrome.storage.local.get([name], res => {
+    const cache  = res[name]
+    if (cache) {
+      setpLoadImageCache(callback, JSON.parse(cache))
+      console.log("use cache from " + name)
     }
 
     axios(config)
       .then(axiosRes => {
-        convertImgToBase64(axiosRes.data.urls.regular, base64Img => {
-          if (!res.imageCache) {
+        const unsplashImageSizeUrl = getImageSizeUrl(axiosRes.data.urls)
+        convertImageUrlToStorageByName(unsplashImageSizeUrl, name, base64Img => {
+          if (!cache) {
             setpLoadImageCache(callback, base64Img)
           }
-          chrome.storage.local.set({ "imageCache": JSON.stringify(base64Img) })
         })
       })
-      .catch(err => {
-        console.log(err)
-      })
+      .catch(err => console.log(err))
   })
 }
 
+const convertImageUrlToStorageByName = (url, name, callback) => {
+  convertImgToBase64(url, base64Img => {
+    callback(base64Img)
+    const temp = Object({})
+    temp[name] = JSON.stringify(base64Img)
+    chrome.storage.local.set(temp)
+  })
+}
+
+const getImageSizeUrl = (urls) => {
+  if (store.userConfig.simpModeOptions.imageSize) {
+    return urls[store.userConfig.simpModeOptions.imageSize]
+  } else {
+    return urls.regular
+  }
+}
 </script>
 
 <style lang="less" scoped>
@@ -152,12 +176,25 @@ const fetchUnsplashApi = (callback, params) => {
   }
 }
 
+.top-actions {
+  display: flex;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 2rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.5s ease-in-out;
+  z-index: 10;
+}
+
 .simpmode-action-btns {
   display: flex;
   position: fixed;
   bottom: 0;
   width: 100%;
-  padding: 8rem 3rem 3rem 3rem;
+  padding: 8rem 2rem 2rem 2rem;
   box-sizing: border-box;
   background: linear-gradient(#00000000, #00000055);
   color: white;
@@ -166,9 +203,8 @@ const fetchUnsplashApi = (callback, params) => {
   z-index: 10;
 
   >* {
-    margin: 0 20px;
     cursor: pointer;
-    padding: 1rem;
+    padding: 1rem 0;
   }
 
   .exit-simp-mode {

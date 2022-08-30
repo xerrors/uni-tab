@@ -33,18 +33,38 @@
         <button type="button" v-else class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
       </div>
     </form>
+
     <form action="" class="opt-config">
       <p class="opt-pri-name">用户配置</p>
       <label for="engine" style="display: inline-block;">默认搜索引擎</label>
-      <select name="engine" v-model="store.userConfig.defaultSearchEngine">
-        <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">
-          <span><icon-font :type="'icon-' + key"/> </span> {{ engine.name }}
-        </option>
+      <select name="engine" v-model="store.userConfig.defaultSearchEngine" :onchange="inputOnchangeToSave">
+        <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">{{ engine.name }}</option>
       </select>
       <p>触发词：{{ store.userConfig.defaultSearchEngine && searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
-      <label for="simpmmode">Unsplash Client ID</label>
-      <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id" @keyup.enter="saveStoreUserConfigToStorage">
+    </form>
 
+    <form action="" class="opt-simpmode" v-if="store.userConfig.simpModeOptions">
+      <p class="opt-pri-name">极简模式配置</p>
+      <label for="sources">壁纸图片来源</label>
+      <select name="sources" v-model="store.userConfig.simpModeOptions.source" :onchange="inputOnchangeToSave">
+        <option value="unsplash-free">Unsplash Free (暂不支持设置大小)</option>
+        <option value="unsplash-api">Unsplash API (需要配置 Client ID)</option>
+        <option value="unsplash-api-earth">Unsplash Earth (需要配置 Client ID)</option>
+        <option value="unsplash-api-oil-art">Unsplash Oil Art (需要配置 Client ID)</option>
+      </select>
+      <label for="image-size">壁纸大小</label>
+      <select name="image-size" 
+        v-model="store.userConfig.simpModeOptions.imageSize" 
+        :onchange="inputOnchangeToSave"
+        :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
+        <option value="small">Small (60K-100K)</option>
+        <option value="regular">Regular (140K-300K)</option>
+        <option value="full">Full (2.5M-10M)</option>
+      </select>
+      <label for="simpmmode">Unsplash Client ID</label>
+      <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
+        :onchange="inputOnchangeToSave"
+        :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
     </form>
   </div>
   <!-- <div class="opt-submit">
@@ -56,14 +76,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { saveAs } from 'file-saver'
 import { saveConfigToStorage, loadConfigFromStorage } from '@/plugins/storage';
 import { syncConfig, generateOSS } from '@/plugins/sync'
 import { LoadingOutlined } from "@ant-design/icons-vue";
 import { parseTime } from '@/utils/format';
 import { searchEngine } from "@/assets/configs/config";
-import { Message, IconFont, CheckBox }  from "@/global-components"
+import { Message, CheckBox }  from "@/global-components"
 
 import {
   saveStoreUserConfigToStorage,
@@ -80,9 +100,9 @@ const state = reactive({
   formatedDate: computed(() => parseTime(store.syncState.timeStamp, "{h}:{i}:{s}"))
 })
 
-watch(() => store.userConfig.defaultSearchEngine, () => {
+const inputOnchangeToSave = () => {
   saveStoreUserConfigToStorage()
-})
+}
 
 const saveConfig = async () => {
   loadConfigFromStorage().then(config => {

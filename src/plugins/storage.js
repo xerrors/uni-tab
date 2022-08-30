@@ -2,9 +2,11 @@
 import { defaultConfig } from "@/assets/configs/config"
 // import { parseTime } from "@/utils/format"
 
+export const uniStorage = chrome.storage.sync
+
 export function loadConfigFromStorage() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(["config"], res => {
+        uniStorage.get(["config"], res => {
             if (res.config) {
                 res.config = JSON.parse(res.config)
                 resolve(res.config)
@@ -18,14 +20,12 @@ export function loadConfigFromStorage() {
 export function saveConfigToStorage(config, update = true) {
     config.timeStamp = update ? Date.parse(new Date()) : config.timeStamp;
     const configFormatted = JSON.stringify(config)
-    chrome.storage.sync.set({"config": configFormatted})
+    uniStorage.set({"config": configFormatted})
 }
-
-
 
 export function modifyConfigViaStorage(intermater) {
     return new Promise((resolve, reject) => {
-        chrome.storage.sync.get(["config"], res => {
+        uniStorage.get(["config"], res => {
             if (res.config) {
                 res.config = JSON.parse(res.config)
                 const configOut = intermater(res.config)
@@ -39,5 +39,5 @@ export function modifyConfigViaStorage(intermater) {
 }
 
 export function clearConfig() {
-    chrome.storage.sync.set({"config": undefined})
+    uniStorage.set({"config": undefined})
 }

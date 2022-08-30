@@ -1,6 +1,6 @@
 import OSS from 'ali-oss';
 import { store, saveStoreOSSConfigToStorage } from '@/plugins/store';
-import { loadConfigFromStorage, saveConfigToStorage } from "@/plugins/storage"
+import { uniStorage ,loadConfigFromStorage, saveConfigToStorage } from "@/plugins/storage"
 import { parseTime } from '@/utils/format';
 
 let oss;
@@ -12,7 +12,7 @@ export function generateOSS() {
 // syncState
 export function loadSyncStateFromStorage() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(["sync"], res => {
+        uniStorage.get(["sync"], res => {
             if (res.sync) {
                 res.sync = JSON.parse(res.sync)
                 resolve(res.sync)
@@ -25,13 +25,13 @@ export function loadSyncStateFromStorage() {
 
 export function saveSyncStateToStorage(syncState) {
     const syncStateFormatted = JSON.stringify(syncState)
-    chrome.storage.sync.set({"sync": syncStateFormatted})
+    uniStorage.set({"sync": syncStateFormatted})
 }
 
 // ossConfig
 export function loadOSSConfigFromStorage() {
     return new Promise((resolve, reject) => {
-        chrome.storage.sync.get(["ossConfig"], res => {
+        uniStorage.get(["ossConfig"], res => {
             if (res.ossConfig) {
                 res.ossConfig = JSON.parse(res.ossConfig)
                 resolve(res.ossConfig)
@@ -45,7 +45,7 @@ export function loadOSSConfigFromStorage() {
 
 export function saveOSSConfigToStorage(ossConfig) {
     const ossConfigFormatted = JSON.stringify(ossConfig)
-    chrome.storage.sync.set({"ossConfig": ossConfigFormatted})
+    uniStorage.set({"ossConfig": ossConfigFormatted})
 }
 
 
