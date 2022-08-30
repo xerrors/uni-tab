@@ -1,25 +1,27 @@
 <template>
   <div id="main-container">
-    <simp-mode v-if="store.userConfig.simpMode"></simp-mode>
+    <simp-mode v-if="store.userConfig.simpMode" @exit-simp-mode="exitSimpMode"></simp-mode>
     <div :class="[{ 'show-option': state.showOptions }, 'newtab']" v-else-if="store.userConfig.name">
-      <div class="header-ccontainer">
-        <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
-        <!-- <div class="settings div-btn" @click="state.archiveMode = !state.archiveMode" style="margin-left: auto">
-          <eye-invisible-outlined v-if="state.archiveMode" />
-          <eye-outlined v-else />
-        </div> -->
-        <div class="settings div-btn" @click="state.editLink = !state.editLink" style="margin-left: auto">
-          <form-outlined />
+      <div class="header-container">
+        <div class="uni-search-bar">
+          <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
         </div>
-        <div class="settings div-btn" @click="enterSimpMode">
-          <send-outlined />
-        </div>
-        <div class="settings div-btn" @click="state.showOptions = !state.showOptions">
-          <setting-outlined />
+        <div class="header-actions" v-if="!store.userConfig.hideLinks">
+          <div :class="['header-act-btn', {'finish-btn': state.editLink }]" @click="state.editLink = !state.editLink" style="margin-left: auto">
+            <form-outlined v-if="!state.editLink" />
+            <span v-else>完成</span>
+          </div>
+          <div class="header-act-btn" @click="enterSimpMode">
+            <send-outlined class="flip-horizontal-bottom"/>
+          </div>
+          <div class="header-act-btn" @click="state.showOptions = !state.showOptions">
+            <setting-outlined class="rotate-90-cw act-setting-icon" v-if="state.showOptions"/>
+            <setting-outlined class="rotate-90-cw" v-else/>
+          </div>
         </div>
       </div>
-      <group-links :edit-link="state.editLink"></group-links>
-      <read-list></read-list>
+      <group-links v-if="!store.userConfig.hideLinks" :edit-link="state.editLink"></group-links>
+      <read-list v-if="!store.userConfig.hideReadList"></read-list>
     </div>
     <user-options v-if="state.showOptions" @hide-options="state.showOptions = false"></user-options>
   </div>
@@ -28,7 +30,6 @@
 <script setup>
 import { onMounted, reactive } from "vue";
 
-// import SearchBar from "./components/SearchBar.vue";
 import SearchBar from "@/global-components/SearchBar/App.vue";
 import SearchBarPop from "@/global-components/SearchBar";
 import UserOptions from "./components/UserOptions.vue";
@@ -94,6 +95,11 @@ const enterSimpMode = () => {
   saveStoreUserConfigToStorage();
 }
 
+const exitSimpMode = () => {
+  store.userConfig.simpMode = false;
+  saveStoreUserConfigToStorage();
+}
+
 document.addEventListener("keydown", function (e) {
   if (e.ctrlKey && (e.code == 'Space') && store.userConfig.simpMode) {
     SearchBarPop({name: "unitab"})
@@ -101,9 +107,28 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
+document.addEventListener("keydown", function (e) {
+  if (e.ctrlKey && e.code == 'KeyP') {
+    if (store.userConfig.simpMode) {
+      exitSimpMode()
+    } else {
+      enterSimpMode()
+    }
+    e.preventDefault();
+  }
+});
+
+// document.addEventListener("keydown", function (e) {
+//   if (e.altKey && (e.code)) {
+//     console.log(e.code)
+//     e.preventDefault();
+//   }
+// });
+
 </script>
  
 <style lang="less" scoped>
+
 @import url("css/index.css");
 
 #main-container {
@@ -114,6 +139,7 @@ document.addEventListener("keydown", function (e) {
 
   &>div.newtab.show-option {
     width: calc(100vw - var(--option-width));
+    transition: width 0.3s ease-in-out;
   }
 }
 
@@ -128,19 +154,7 @@ document.addEventListener("keydown", function (e) {
   // position: relative;
 }
 
-.div-btn {
-  font-size: 16px;
-  cursor: pointer;
-  display: inline-block;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 12px 12px;
-  line-height: 16px;
-  border-radius: 4px;
-  user-select: none;
-}
-
-.header-ccontainer {
+.header-container {
   height: 60px;
   display: flex;
   justify-items: center;
@@ -149,14 +163,70 @@ document.addEventListener("keydown", function (e) {
   margin-top: 50px;
   margin-bottom: 100px;
 
-  h1 {
-    margin: 0;
-    line-height: 60px;
+  .uni-search-bar {
+    flex-grow: 1;
   }
 
-  div.settings:hover {
+  .header-actions {
+    display: flex;
+    justify-content: center;
+    flex-grow: 0;
+
+    .finish-btn {
+      background-color: var(--theme-color);
+      color: white;
+      border-radius: 4px;
+      padding: 10px 1rem;
+      margin: 12px 10px;
+    }
+
+    .act-setting-icon {
+      color: var(--theme-color);
+      transform: rotate(90deg);
+    }
+  }
+
+  div.header-act-btn {
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+    padding: 1rem;
+    line-height: 16px;
+    margin: 6px 0;
+    border-radius: 12px;
+    user-select: none;
     transition: all 0.1s ease-in-out;
-    background: #f0f2f4;
+  }
+
+  div.header-act-btn:not(.finish-btn):hover {
+    background: #f0f2f4; 
+    color: var(--theme-color);
+
+    & > .rotate-90-cw {
+      animation: rotate-90-cw 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+
+    & > .flip-horizontal-bottom {
+      animation: flip-horizontal-bottom 0.4s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;
+    }
+  }
+}
+
+@keyframes rotate-90-cw {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+@keyframes flip-horizontal-bottom {
+  0% {
+    transform: rotateX(0);
+  }
+  100% {
+    transform: rotateX(-180deg);
   }
 }
 </style>

@@ -349,6 +349,7 @@ const addDragListenerToGroups = () => {
     text-decoration-line: none;
     float: right;
     text-align: right;
+    opacity: 0.6;
   }
 
   &:hover>a {
@@ -357,6 +358,7 @@ const addDragListenerToGroups = () => {
   }
 
   &:hover>span {
+    opacity: 1;
     background: #fff1f0;
     color: hsl(1, 100%, 60%);
     ;

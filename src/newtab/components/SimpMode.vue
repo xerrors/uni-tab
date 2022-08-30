@@ -2,7 +2,7 @@
   <div id="crx-simpmode" ref="simpModeRef"></div>
   <!-- <div class="top-actions">
     <div>{{ state.src.label }}</div>
-    <div @click="exitSimpMode"><export-outlined /></div>
+    <div @click="$emit('exitSimpMode')"><export-outlined /></div>
   </div> -->
   <div class="simpmode-action-btns">
     <!-- <div class="random-src" @click="switchSrc">随机切换</div> -->
@@ -14,7 +14,7 @@
       </span>
     </div>
     <div class="actions-right">
-      <span @click="exitSimpMode">Exit</span>
+      <span @click="$emit('exitSimpMode')">Exit</span>
     </div>
   </div>
   <div class="lazy-image" ref="lazyImageRef1"></div>
@@ -24,7 +24,7 @@
 <script setup>
 import { saveStoreUserConfigToStorage, store } from '@/plugins/store';
 import { convertImgToBase64 } from '@/utils/format';
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, defineEmits } from 'vue';
 import axios from 'axios';
 
 import {
@@ -35,6 +35,7 @@ import {
 const simpModeRef = ref(null)
 const lazyImageRef1 = ref(null)
 const lazyImageRef2 = ref(null)
+defineEmits(['exitSimpMode'])
 
 const sources = [{
   name: 'unsplash-free',
@@ -99,11 +100,6 @@ const switchImg = () => {
 const replaceBgImage = url => {
   simpModeRef.value.style.backgroundImage = "url(" + url + ")"
     setTimeout(() => state.loading = false, 500)
-}
-
-const exitSimpMode = () => {
-  store.userConfig.simpMode = false;
-  saveStoreUserConfigToStorage();
 }
 
 const setpLoadImageCache = (base64Img) => {
@@ -179,6 +175,13 @@ const getRedirectLinkCallback = (link, callback) => {
   xhr.open('GET', link, true);
   xhr.send()
 }
+
+document.addEventListener("keydown", function (e) {
+  if (e.ctrlKey && (e.code == 'KeyR')) {
+    switchImg()
+    e.preventDefault();
+  }
+});
 </script>
 
 <style lang="less" scoped>

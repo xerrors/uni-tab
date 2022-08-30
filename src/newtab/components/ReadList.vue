@@ -78,16 +78,39 @@ watch(() => store.userConfig.readList, value => {
   }
 
   .title {
-    width: 48px;
+    width: 88px;
     font-size: 1rem;
-    padding: 12px;
+    padding: 0 2rem;
+    // height: auto;
     box-sizing: border-box;
-    box-shadow: 0 0 1px 1px rgb(0 0 0 / 5%);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
+    // box-shadow: 0 0 1px 1px rgb(0 0 0 / 5%);
+    // border: 1px solid var(--border-color);
+    // border-radius: 4px;
     text-align: center;
     writing-mode: vertical-lr;
-    letter-spacing: 8px;
+    letter-spacing: 12px;
+    position: relative;
+
+    &::before, &::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+    }
+
+    &::before {
+      top: 0;
+      left: 0;
+      border-top: 3px solid var(--theme-color);
+      border-left: 3px solid var(--theme-color);
+    }
+
+    &::after {
+      right: 0;
+      bottom: 0;
+      border-right: 3px solid var(--theme-color);
+      border-bottom: 3px solid var(--theme-color);
+    }
   }
 
   &::before {
@@ -111,6 +134,8 @@ watch(() => store.userConfig.readList, value => {
   transition: all 0.1s;
   scroll-behavior: smooth;
   padding-right: 80px;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 12px;
 
   &::-webkit-scrollbar {
     display: none;
@@ -126,14 +151,15 @@ watch(() => store.userConfig.readList, value => {
   display: inline-block;
   margin-left: 12px;
   height: 100%;
+  scroll-snap-align: start;
 }
 
 .readlist>.read-item>.read-card {
   display: block;
   height: 100%;
   color: inherit;
-  border: 1px solid #e0e6ed;
-  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  // border-radius: 4px;
   box-sizing: border-box;
   position: relative;
 

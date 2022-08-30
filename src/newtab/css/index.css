@@ -53,6 +53,10 @@ button.btn-secondry:hover {
     font-size: 0.8rem;
 }
 
+#crx-newtab select {
+    cursor: pointer;
+}
+
 #crx-newtab label {
     font-weight: bold;
     margin: 0.8rem 0 0.4rem 0;
@@ -61,7 +65,6 @@ button.btn-secondry:hover {
 #crx-newtab input[type=text],
 #crx-newtab input[type=password], 
 #crx-newtab select {
-    cursor: pointer;
     background: var(--bg-color);
     border: 1px solid var(--border-color);
     border-radius: 4px;

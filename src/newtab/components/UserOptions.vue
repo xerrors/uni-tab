@@ -172,12 +172,12 @@ const clickToEnableSync = () => {
     state.syncing = true
     syncConfig(res => {
       if (res.type == "failed") {
-        state.syncing = false
+        setTimeout(() => state.syncing = false, 500)
         Message.error("与对象存储连接失败: " + res.msg)
       } else {
         store.syncState.enableSync = true
         saveStoreSyncStateToStorage()
-        state.syncing = false
+        setTimeout(() => state.syncing = false, 500)
         Message.success("同步成功")
       }
     }, config)

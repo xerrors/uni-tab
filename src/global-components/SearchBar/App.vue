@@ -75,7 +75,6 @@ onMounted(() => {
       }
     });
     }
-
 })
 
 
@@ -91,10 +90,17 @@ onMounted(() => {
 </style>
 
 <style lang="less" scoped>
+div.c-searchbar-plus > div#crx-unitab-searchbar.searchbar {
+  width: 60vw;
+  max-width: 680px;
+}
+
+div:not(.c-searchbar-plus) > div#crx-unitab-searchbar.searchbar {
+  width: 90%;
+  max-width: 700px;
+}
 
 div#crx-unitab-searchbar.searchbar {
-  width: 50vw;
-  max-width: 680px;
   height: 52px;
   display: flex;
 
