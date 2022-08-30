@@ -167,7 +167,6 @@ const swap = (arr, i, j) => {
 
 // 链接组的拖拽排序
 const addDragListenerToGroups = () => {
-  console.log("debug start")
   document.ondragover = function (e) { e.preventDefault(); }          // 必须设置dragover阻止默认事件
   document.ondrop = function (e) { e.preventDefault(); }
 

@@ -1,10 +1,21 @@
 <template>
   <div id="crx-simpmode" ref="simpModeRef"></div>
-  <div class="top-actions">{{ state.src.label }}</div>
+  <!-- <div class="top-actions">
+    <div>{{ state.src.label }}</div>
+    <div @click="exitSimpMode"><export-outlined /></div>
+  </div> -->
   <div class="simpmode-action-btns">
     <!-- <div class="random-src" @click="switchSrc">随机切换</div> -->
-    <div class="random-img" @click="switchImg">随机图片</div>
-    <div class="exit-simp-mode" @click="exitSimpMode">退出极简模式</div>
+    <div class="actions-left">
+      <span>{{ state.src.label }}</span>
+      <span @click="switchImg">
+        <loading-outlined v-if="state.loading" />
+        <redo-outlined v-else />
+      </span>
+    </div>
+    <div class="actions-right">
+      <span @click="exitSimpMode">Exit</span>
+    </div>
   </div>
   <div class="lazy-image" ref="lazyImageRef1"></div>
   <div class="lazy-image" ref="lazyImageRef2"></div>
@@ -16,6 +27,11 @@ import { convertImgToBase64 } from '@/utils/format';
 import { onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
 
+import {
+  RedoOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons-vue'
+
 const simpModeRef = ref(null)
 const lazyImageRef1 = ref(null)
 const lazyImageRef2 = ref(null)
@@ -23,27 +39,28 @@ const lazyImageRef2 = ref(null)
 const sources = [{
   name: 'unsplash-free',
   label: 'Unsplash Free',
-  method: (callback) => fetchRandomUnsplashFree(callback)
+  method: () => fetchRandomUnsplashFree()
 }, {
   name: 'unsplash-api',
   label: 'Unsplash API',
-  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api', {})
+  method: () => fetchUnsplashApi({})
 }, {
   name: 'unsplash-api-earth',
   label: 'Unsplash Google Earch',
-  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api-earth', {
+  method: () => fetchUnsplashApi({
     collections: '1343739'
   })
 }, {
   name: 'unsplash-api-oil-art',
   label: 'Unsplash Oil Art',
-  method: (callback) => fetchUnsplashApi(callback, 'unsplash-api-oil-art', {
+  method: () => fetchUnsplashApi({
     collections: 'h_xXYYzbisg'
   })
 }]
 
 const state = reactive({
-  src: sources[0]
+  src: sources[0],
+  loading: false,
 })
 
 onMounted(() => {
@@ -56,7 +73,6 @@ onMounted(() => {
     const imageSrc = sources.find(item => item.name == store.userConfig.simpModeOptions.source)
     state.src = imageSrc
   }
-  console.log(state.src)
   switchImg()
 })
 
@@ -72,9 +88,13 @@ onMounted(() => {
 // }
 
 const switchImg = () => {
-  state.src.method(imageUrl => {
-    simpModeRef.value.style.backgroundImage = "url(" + imageUrl + ")"
-  })
+  state.loading = true
+  state.src.method()
+}
+
+const replaceBgImage = url => {
+  simpModeRef.value.style.backgroundImage = "url(" + url + ")"
+    setTimeout(() => state.loading = false, 500)
 }
 
 const exitSimpMode = () => {
@@ -82,21 +102,25 @@ const exitSimpMode = () => {
   saveStoreUserConfigToStorage();
 }
 
-const setpLoadImageCache = (callback, base64Img) => {
-  callback(base64Img)
+const setpLoadImageCache = (base64Img) => {
+  replaceBgImage(base64Img)
 }
 
-const fetchRandomUnsplashFree = (callbacl) => {
-  const link = "https://source.unsplash.com/random/"
-  const xhr = new XMLHttpRequest();
-  xhr.onload = function () {
-    callbacl(xhr.responseURL)
-  }
-  xhr.open('GET', link, true);
-  xhr.send()
+const fetchRandomUnsplashFree = () => {
+  chrome.storage.local.get(["wallpaperCache"], res => {
+    const cache = res["wallpaperCache"]
+    if (cache) {
+      setpLoadImageCache(JSON.parse(cache))
+      console.log("use cache")
+    }
+    getRedirectLinkCallback("https://source.unsplash.com/random/", resURL => {
+      convertImageUrlToStorageByName(resURL, setpLoadImageCache, !cache)
+    })
+  })
+
 }
 
-const fetchUnsplashApi = (callback, name, params) => {
+const fetchUnsplashApi = (params) => {
   const config = {
     method: "GET",
     url: "https://api.unsplash.com/photos/random",
@@ -104,32 +128,28 @@ const fetchUnsplashApi = (callback, name, params) => {
   }
   config.params.client_id = store.userConfig.simpModeOptions.client_id || "brbgDcyKVK0ahmSJYXgM85P4hRnI8FmhDM4Fhtohrl0"
 
-  chrome.storage.local.get([name], res => {
-    const cache  = res[name]
+  chrome.storage.local.get(['wallpaperCache'], res => {
+    const cache  = res.wallpaperCache
     if (cache) {
-      setpLoadImageCache(callback, JSON.parse(cache))
-      console.log("use cache from " + name)
+      setpLoadImageCache(JSON.parse(cache))
+      console.log("use cache")
     }
 
     axios(config)
       .then(axiosRes => {
-        const unsplashImageSizeUrl = getImageSizeUrl(axiosRes.data.urls)
-        convertImageUrlToStorageByName(unsplashImageSizeUrl, name, base64Img => {
-          if (!cache) {
-            setpLoadImageCache(callback, base64Img)
-          }
-        })
+        const imageSizeUrl = getImageSizeUrl(axiosRes.data.urls)
+        convertImageUrlToStorageByName(imageSizeUrl, setpLoadImageCache, !cache)
       })
       .catch(err => console.log(err))
   })
 }
 
-const convertImageUrlToStorageByName = (url, name, callback) => {
+const convertImageUrlToStorageByName = (url, replace = false) => {
   convertImgToBase64(url, base64Img => {
-    callback(base64Img)
-    const temp = Object({})
-    temp[name] = JSON.stringify(base64Img)
-    chrome.storage.local.set(temp)
+    if (replace) {
+      setpLoadImageCache(base64Img)
+    }
+    chrome.storage.local.set({'wallpaperCache': JSON.stringify(base64Img)})
   })
 }
 
@@ -139,6 +159,15 @@ const getImageSizeUrl = (urls) => {
   } else {
     return urls.regular
   }
+}
+
+const getRedirectLinkCallback = (link, callback) => {
+  const xhr = new XMLHttpRequest();
+  xhr.onload = function () {
+    callback(xhr.responseURL)
+  }
+  xhr.open('GET', link, true);
+  xhr.send()
 }
 </script>
 
@@ -176,18 +205,18 @@ const getImageSizeUrl = (urls) => {
   }
 }
 
-.top-actions {
-  display: flex;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 2rem;
-  color: white;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: all 0.5s ease-in-out;
-  z-index: 10;
-}
+// .top-actions {
+//   display: flex;
+//   position: fixed;
+//   top: 0;
+//   width: 100%;
+//   padding: 2rem;
+//   color: white;
+//   font-size: 1rem;
+//   font-weight: bold;
+//   transition: all 0.5s ease-in-out;
+//   z-index: 10;
+// }
 
 .simpmode-action-btns {
   display: flex;
@@ -196,23 +225,36 @@ const getImageSizeUrl = (urls) => {
   width: 100%;
   padding: 8rem 2rem 2rem 2rem;
   box-sizing: border-box;
-  background: linear-gradient(#00000000, #00000055);
   color: white;
   transition: all 0.5s ease-in-out;
-  opacity: 0;
   z-index: 10;
 
-  >* {
+  .actions-left, .actions-right {
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: white;
+    opacity: .8;
+    text-shadow: 0 1px 4px rgb(0 0 0 / 15%);
     cursor: pointer;
-    padding: 1rem 0;
-  }
 
-  .exit-simp-mode {
-    margin-left: auto;
+    &:hover {
+      opacity: 1;
+    }
   }
+  .actions-left {
+    flex-grow: 1;
 
-  &:hover {
-    opacity: 1;
+    * {
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+  }
+  .actions-right {
+    flex-grow: 0;
   }
 }
 
