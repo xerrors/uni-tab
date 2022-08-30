@@ -1,78 +1,88 @@
 <template>
-<div class="opt-box" ref="userOptopnsElement">
-<div class="options-container">
-  <div class="opt-header">
-    <h2>用户设置选项</h2>
-    <input type="file" id="fileInput" ref="fileInputBtn" @change="loadConfig" style="display: none;">
-    <h2 class="c-btn-text" @click="saveConfig"> 导出 </h2>
-    <h2 class="c-btn-text" @click="demoClick">  导入 </h2>
-  </div>
-  <div class="opt-content">
-    <form action="" class="opt-sync">
-      <p class="opt-pri-name">阿里云 OSS 同步设置</p>
-      <span v-if="store.syncState.enableSync" class="sync-dot" :style="{background: state.syncDotColor}"></span>
-      <span v-if="store.syncState.enableSync" style="margin-right: 0.5rem">
-        更新于：{{ state.formatedDate }}
-        状态：{{ store.syncState.type }}
-      </span> 
-      <label for="region">Region</label>
-      <input type="text" name="region" v-model="store.ossConfig.region">
-      <label for="bucket">Bucket Name</label>
-      <input type="text" name="bucket" v-model="store.ossConfig.bucket">
-      <label for="accessKeyId">AccessKey ID</label>
-      <input type="text" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
-      <label for="accessKeySecret">Accesskey Secret</label>
-      <input type="text" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
-
-      <div class="oss-config-btn">
-        <button type="button" class="c-btn-m" @click="clickToEnableSync">
-          <span v-if="state.syncing" style="margin-right: 0.5rem"><loading-outlined /></span>
-          {{ store.syncState.enableSync ? "立即同步":"启用同步" }}
-        </button>
-        <button type="button" v-if="store.syncState.enableSync" class="c-btn-m btn-secondry" @click="clickToDisableSync">暂停自动同步</button>
-        <button type="button" v-else class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
+  <div class="opt-box" ref="userOptopnsElement">
+    <div class="options-container">
+      <div class="opt-header">
+        <h2>用户设置选项</h2>
+        <input type="file" id="fileInput" ref="fileInputBtn" @change="loadConfig" style="display: none;">
+        <h2 class="c-btn-text" @click="saveConfig"> 导出 </h2>
+        <h2 class="c-btn-text" @click="demoClick"> 导入 </h2>
       </div>
-    </form>
+      <div class="opt-content">
+        <form action="" class="opt-sync">
+          <p class="opt-pri-name">阿里云 OSS 同步设置</p>
+          <span v-if="store.syncState.enableSync" class="sync-dot" :style="{background: state.syncDotColor}"></span>
+          <span v-if="store.syncState.enableSync" style="margin-right: 0.5rem">
+            更新于：{{ state.formatedDate }}
+            状态：{{ store.syncState.type }}
+          </span>
+          <label for="region">Region</label>
+          <input type="text" name="region" v-model="store.ossConfig.region">
+          <label for="bucket">Bucket Name</label>
+          <input type="text" name="bucket" v-model="store.ossConfig.bucket">
+          <label for="accessKeyId">AccessKey ID</label>
+          <input type="text" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
+          <label for="accessKeySecret">Accesskey Secret</label>
+          <input type="text" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
 
-    <form action="" class="opt-config">
-      <p class="opt-pri-name">用户配置</p>
-      <label for="engine" style="display: inline-block;">默认搜索引擎</label>
-      <select name="engine" v-model="store.userConfig.defaultSearchEngine" :onchange="inputOnchangeToSave">
-        <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">{{ engine.name }}</option>
-      </select>
-      <p>触发词：{{ store.userConfig.defaultSearchEngine && searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
-    </form>
+          <div class="oss-config-btn">
+            <button type="button" class="c-btn-m" @click="clickToEnableSync">
+              <span v-if="state.syncing" style="margin-right: 0.5rem">
+                <loading-outlined />
+              </span>
+              {{ store.syncState.enableSync ? "立即同步":"启用同步" }}
+            </button>
+            <button type="button" v-if="store.syncState.enableSync" class="c-btn-m btn-secondry"
+              @click="clickToDisableSync">暂停自动同步</button>
+            <button type="button" v-else class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
+          </div>
+        </form>
 
-    <form action="" class="opt-simpmode" v-if="store.userConfig.simpModeOptions">
-      <p class="opt-pri-name">极简模式配置</p>
-      <label for="sources">壁纸图片来源</label>
-      <select name="sources" v-model="store.userConfig.simpModeOptions.source" :onchange="inputOnchangeToSave">
-        <option value="unsplash-free">Unsplash Free (暂不支持设置大小)</option>
-        <option value="unsplash-api">Unsplash API (需要配置 Client ID)</option>
-        <option value="unsplash-api-earth">Unsplash Earth (需要配置 Client ID)</option>
-        <option value="unsplash-api-oil-art">Unsplash Oil Art (需要配置 Client ID)</option>
-      </select>
-      <label for="image-size">壁纸大小</label>
-      <select name="image-size" 
-        v-model="store.userConfig.simpModeOptions.imageSize" 
-        :onchange="inputOnchangeToSave"
-        :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
-        <option value="small">Small (60K-100K)</option>
-        <option value="regular">Regular (140K-300K)</option>
-        <option value="full">Full (2.5M-10M)</option>
-      </select>
-      <label for="simpmmode">Unsplash Client ID</label>
-      <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
-        :onchange="inputOnchangeToSave"
-        :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
-    </form>
-  </div>
-  <!-- <div class="opt-submit">
+        <form action="" class="opt-config">
+          <p class="opt-pri-name">用户配置</p>
+          <label for="engine">默认搜索引擎</label>
+          <select name="engine" v-model="store.userConfig.defaultSearchEngine" :onchange="inputOnchangeToSave">
+            <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">{{ engine.name }}</option>
+          </select>
+          <p>触发词：{{ store.userConfig.defaultSearchEngine &&
+            searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
+          <label for="content">内容设置</label>
+          <div class="opt-config-content">
+            <span :class="{'hide-active': store.userConfig.hideLinks}"
+              @click="clickToHideComponent('hideLinks')">
+              隐藏收藏链接</span>
+            <span :class="{'hide-active': store.userConfig.hideReadList}"
+              @click="clickToHideComponent('hideReadList')">
+              隐藏稍后阅读</span>
+          </div>
+        </form>
+
+        <form action="" class="opt-simpmode" v-if="store.userConfig.simpModeOptions">
+          <p class="opt-pri-name">极简模式配置</p>
+          <label for="sources">壁纸图片来源</label>
+          <select name="sources" v-model="store.userConfig.simpModeOptions.source" :onchange="inputOnchangeToSave">
+            <option value="unsplash-free">Unsplash Free (暂不支持设置大小)</option>
+            <option value="unsplash-api">Unsplash API (需要配置 Client ID)</option>
+            <option value="unsplash-api-earth">Unsplash Earth (需要配置 Client ID)</option>
+            <option value="unsplash-api-oil-art">Unsplash Oil Art (需要配置 Client ID)</option>
+          </select>
+          <label for="image-size">壁纸大小</label>
+          <select name="image-size" v-model="store.userConfig.simpModeOptions.imageSize" :onchange="inputOnchangeToSave"
+            :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
+            <option value="small">Small (60K-100K)</option>
+            <option value="regular">Regular (140K-300K)</option>
+            <option value="full">Full (2.5M-10M)</option>
+          </select>
+          <label for="simpmmode">Unsplash Client ID</label>
+          <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
+            :onchange="inputOnchangeToSave" :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
+        </form>
+      </div>
+      <!-- <div class="opt-submit">
     <button type="button" class="c-btn-m" @click="saveOptions">保存</button>
     <button type="button" class="c-btn-m btn-secondry" @click="$emit('hide-options')">取消</button>
   </div> -->
-</div>
-</div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -189,6 +199,11 @@ const clickToSaveOssConfig = () => {
   saveStoreOSSConfigToStorage()
 }
 
+const clickToHideComponent = item => {
+  store.userConfig[item] = !store.userConfig[item]
+  saveStoreUserConfigToStorage()
+}
+
 </script>
 
 <style lang="less" scoped>
@@ -267,6 +282,28 @@ const clickToSaveOssConfig = () => {
   .opt-pri-name {
     font-size: 1rem;
     font-weight: bold;
+  }
+  
+  .opt-config-content {
+    display: flex;
+
+    span {
+      border-radius: 4px;
+      background-color: #f0f2f4;
+      padding: 0.5rem 0.8rem;
+      margin-right: 1rem;
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        background-color: #e0e2e4;
+      }
+    }
+
+    span.hide-active {
+      background-color: var(--theme-color-60);
+      color: white;
+    }
   }
 }
 

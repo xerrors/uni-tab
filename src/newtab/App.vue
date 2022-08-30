@@ -6,17 +6,18 @@
         <div class="uni-search-bar">
           <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
         </div>
-        <div class="header-actions" v-if="!store.userConfig.hideLinks">
-          <div :class="['header-act-btn', {'finish-btn': state.editLink }]" @click="state.editLink = !state.editLink" style="margin-left: auto">
+        <div class="header-actions">
+          <div :class="['header-act-btn', {'finish-btn': state.editLink }]" @click="state.editLink = !state.editLink"
+            style="margin-left: auto" v-if="!store.userConfig.hideLinks">
             <form-outlined v-if="!state.editLink" />
             <span v-else>完成</span>
           </div>
           <div class="header-act-btn" @click="enterSimpMode">
-            <send-outlined class="flip-horizontal-bottom"/>
+            <send-outlined class="flip-horizontal-bottom" />
           </div>
           <div class="header-act-btn" @click="state.showOptions = !state.showOptions">
-            <setting-outlined class="rotate-90-cw act-setting-icon" v-if="state.showOptions"/>
-            <setting-outlined class="rotate-90-cw" v-else/>
+            <setting-outlined class="rotate-90-cw act-setting-icon" v-if="state.showOptions" />
+            <setting-outlined class="rotate-90-cw" v-else />
           </div>
         </div>
       </div>
