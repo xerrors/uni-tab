@@ -41,6 +41,7 @@ const state = reactive({
 })
 
 onMounted(() => {
+  getAbsResult()
   setInterval(getAbsResult, 1000)
 })
 
