@@ -14,8 +14,15 @@
     --text-gray-color: #636363;
 
     --theme-color-deg: 212deg;
+    --theme-color-saturation: 92%;
     --theme-color: hsl(var(--theme-color-deg), 92%, 50%);
     --theme-color-40: hsl(var(--theme-color-deg), 92%, 40%);
     --theme-color-60: hsl(var(--theme-color-deg), 92%, 60%);
     --theme-color-80: hsl(var(--theme-color-deg), 92%, 80%);
+}
+
+@media (min-width: 1600px) {
+    :root {
+        --option-width: 500px;
+    }
 }

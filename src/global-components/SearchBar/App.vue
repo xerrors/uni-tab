@@ -20,15 +20,16 @@ import { reactive, ref, watch, defineProps, onMounted } from "vue"
 import { searchEngine } from "@/assets/configs/config";
 import { IconFont, IconFontAli } from "@/global-components";
 import { onClickOutside } from "@vueuse/core";
+import { computed } from "@vue/reactivity";
 
 const props = defineProps({
-  defaultSearchEngine: { type: String, default: "google" }, // 消息配置项
+  defaultSearchEngine: { type: String }, // 消息配置项
   config: { type: Object, default: () => { } }, // 消息配置项
   remove: { type: Function, default: () => { } }, // 取消挂载回调
 })
 
 const state = reactive({
-  engine: "google",
+  engine: computed(() => props.defaultSearchEngine) || 'google',
 })
 
 const inputValue = ref("")

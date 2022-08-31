@@ -1,5 +1,5 @@
 <template>
-  <div id="main-container">
+  <div id="main-container" class="unitab">
     <simp-mode v-if="store.userConfig.simpMode" @exit-simp-mode="exitSimpMode"></simp-mode>
     <div :class="[{ 'show-option': state.showOptions }, 'newtab']" v-else-if="store.userConfig.name">
       <div class="header-container">
@@ -16,7 +16,7 @@
             <send-outlined class="flip-horizontal-bottom" />
           </div>
           <div class="header-act-btn" @click="state.showOptions = !state.showOptions">
-            <setting-outlined class="rotate-90-cw act-setting-icon" v-if="state.showOptions" />
+            <setting-filled class="rotate-90-cw act-setting-icon" v-if="state.showOptions" />
             <setting-outlined class="rotate-90-cw" v-else />
           </div>
         </div>
@@ -39,9 +39,8 @@ import ReadList from "./components/ReadList.vue"
 import SimpMode from "./components/SimpMode.vue"
 
 import {
-  // EyeInvisibleOutlined,
-  // EyeOutlined,
   SettingOutlined,
+  SettingFilled,
   FormOutlined,
   SendOutlined,
 } from '@ant-design/icons-vue';

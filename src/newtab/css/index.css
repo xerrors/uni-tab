@@ -45,26 +45,26 @@ button.btn-secondry:hover {
 }
 
 
-#crx-newtab label, 
-#crx-newtab input[type=text], 
-#crx-newtab input[type=password], 
-#crx-newtab select {
+.unitab label, 
+.unitab input[type=text], 
+.unitab input[type=password], 
+.unitab select {
     display: block;
     font-size: 0.8rem;
 }
 
-#crx-newtab select {
+.unitab select {
     cursor: pointer;
 }
 
-#crx-newtab label {
+.unitab label {
     font-weight: bold;
-    margin: 0.8rem 0 0.4rem 0;
+    margin: 1rem 0 0.8rem 0;
 }
 
-#crx-newtab input[type=text],
-#crx-newtab input[type=password], 
-#crx-newtab select {
+.unitab input[type=text],
+.unitab input[type=password], 
+.unitab select {
     background: var(--bg-color);
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -74,16 +74,20 @@ button.btn-secondry:hover {
     box-sizing: border-box;
 }
 
-#crx-newtab input[type=text]:focus, 
-#crx-newtab input[type=password]:focus, 
-#crx-newtab select:focus {
+.unitab input[type=text]:focus, 
+.unitab input[type=password]:focus, 
+.unitab select:focus {
     background-color: var(--opt-bg-color);
     outline-color: var(--theme-color);
 }
 
-#crx-newtab input[type=text]:disabled, 
-#crx-newtab input[type=password]:disabled, 
+.unitab input[type=text]:disabled, 
+.unitab input[type=password]:disabled, 
 #crx-newtab select:disabled {
     color: #aaa;
     opacity: 0.7;
+}
+
+.unitab a {
+    color: var(--theme-color-60);
 }

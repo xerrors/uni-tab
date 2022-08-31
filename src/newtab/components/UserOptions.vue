@@ -8,8 +8,9 @@
         <h2 class="c-btn-text" @click="demoClick"> 导入 </h2>
       </div>
       <div class="opt-content">
+        <countdown-card></countdown-card>
         <form action="" class="opt-sync">
-          <p class="opt-pri-name">阿里云 OSS 同步设置</p>
+          <p class="opt-pri-name">阿里云 OSS 同步设置 <a href="https://www.aliyun.com/product/oss" target="_blank">详情</a> </p>
           <span v-if="store.syncState.enableSync" class="sync-dot" :style="{background: state.syncDotColor}"></span>
           <span v-if="store.syncState.enableSync" style="margin-right: 0.5rem">
             更新于：{{ state.formatedDate }}
@@ -45,14 +46,18 @@
           </select>
           <p>触发词：{{ store.userConfig.defaultSearchEngine &&
             searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
-          <label for="content">内容设置</label>
+          <label for="content">组件设置</label>
           <div class="opt-config-content">
             <span :class="{'hide-active': store.userConfig.hideLinks}"
               @click="clickToHideComponent('hideLinks')">
-              隐藏收藏链接</span>
+              <input type="checkbox" v-model="store.userConfig.hideLinks" id="opt-hide-links">
+              <span>隐藏收藏链接</span>
+            </span>
             <span :class="{'hide-active': store.userConfig.hideReadList}"
               @click="clickToHideComponent('hideReadList')">
-              隐藏稍后阅读</span>
+              <input type="checkbox" v-model="store.userConfig.hideReadList" id="opt-hide-readlist">
+              <span>隐藏稍后阅读</span>
+            </span>
           </div>
         </form>
 
@@ -72,7 +77,10 @@
             <option value="regular">Regular (140K-300K)</option>
             <option value="full">Full (2.5M-10M)</option>
           </select>
-          <label for="simpmmode">Unsplash Client ID</label>
+          <label for="simpmmode">
+            Unsplash Client ID &ensp; 
+            <a href="https://unsplash.com/documentation#public-authentication" target="_blank">详情</a> 
+          </label>
           <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
             :onchange="inputOnchangeToSave" :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
         </form>
@@ -94,6 +102,7 @@ import { LoadingOutlined } from "@ant-design/icons-vue";
 import { parseTime } from '@/utils/format';
 import { searchEngine } from "@/assets/configs/config";
 import { Message, CheckBox }  from "@/global-components"
+import CountdownCard from '@/newtab/units/CountdownCard.vue';
 
 import {
   saveStoreUserConfigToStorage,
@@ -106,7 +115,15 @@ const userOptopnsElement = ref(null)
 
 const state = reactive({
   syncing: false,
-  syncDotColor: computed(() => store.syncState.type == "failed" ? "#f83b33":"#50fa77"),
+  syncDotColor: computed(() => {
+    if (store.syncState.type == "failed") {
+      return "#f83b33"
+    } else if (store.syncState.type == "syncing") {
+      return "#3b93f7"
+    } else {
+      return "#50fa77"
+    }
+  }),
   formatedDate: computed(() => parseTime(store.syncState.timeStamp, "{h}:{i}:{s}"))
 })
 
@@ -213,6 +230,7 @@ const clickToHideComponent = item => {
   height: 100vh;
   position: sticky;
   top: 0;
+  animation: swing-in-right-fwd  0.6s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
 }
 
 .options-container {
@@ -278,7 +296,8 @@ const clickToHideComponent = item => {
 }
 
 .opt-content form {
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  margin-top: 2rem;
   .opt-pri-name {
     font-size: 1rem;
     font-weight: bold;
@@ -287,7 +306,16 @@ const clickToHideComponent = item => {
   .opt-config-content {
     display: flex;
 
-    span {
+    input[type=checkbox] {
+      vertical-align: middle;
+      margin-right: 4px;
+
+      &:checked {
+        background-color: red;
+      }
+    }
+
+    & > span {
       border-radius: 4px;
       background-color: #f0f2f4;
       padding: 0.5rem 0.8rem;
@@ -300,7 +328,7 @@ const clickToHideComponent = item => {
       }
     }
 
-    span.hide-active {
+    & > span.hide-active {
       background-color: var(--theme-color-60);
       color: white;
     }
@@ -311,6 +339,19 @@ const clickToHideComponent = item => {
   padding: 1rem 0;
   button {
     margin-right: 1rem;
+  }
+}
+
+@keyframes swing-in-right-fwd  {
+  0% {
+    transform: rotateY(-100deg);
+    transform-origin: right;
+    opacity: 0;
+  }
+  100% {
+    transform: rotateY(0);
+    transform-origin: right;
+    opacity: 1;
   }
 }
 

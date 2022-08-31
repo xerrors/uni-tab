@@ -16,7 +16,9 @@ export const defaultConfig = {
         title: "关于如何使用这个插件需要知道的一些事情",
         url: "https://krance.notion.site/f560f9a308c944519faef3a327acc27b",
         time: Date.parse(new Date())
-    }]
+    }],
+    ddlOption: {},
+    simpModeOptions: {},
 }
 
 export const searchEngine = {

@@ -7,10 +7,10 @@
   <div class="simpmode-action-btns">
     <!-- <div class="random-src" @click="switchSrc">随机切换</div> -->
     <div class="actions-left">
-      <span>{{ state.src.label }}</span>
-      <span @click="switchImg">
+      <span @click="switchImg">{{ state.src.label }}</span>
+      <span>
         <loading-outlined v-if="state.loading" />
-        <redo-outlined v-else />
+        <!-- <format-painter-filled v-else /> -->
       </span>
     </div>
     <div class="actions-right">
@@ -28,7 +28,7 @@ import { onMounted, reactive, ref, defineEmits } from 'vue';
 import axios from 'axios';
 
 import {
-  RedoOutlined,
+  // FormatPainterFilled,
   LoadingOutlined,
 } from '@ant-design/icons-vue'
 
@@ -99,7 +99,7 @@ const switchImg = () => {
 
 const replaceBgImage = url => {
   simpModeRef.value.style.backgroundImage = "url(" + url + ")"
-    setTimeout(() => state.loading = false, 500)
+    setTimeout(() => state.loading = false, 1000)
 }
 
 const setpLoadImageCache = (base64Img) => {
@@ -252,7 +252,6 @@ document.addEventListener("keydown", function (e) {
     color: white;
     opacity: .8;
     text-shadow: 0 1px 4px rgb(0 0 0 / 15%);
-    cursor: pointer;
 
     &:hover {
       opacity: 1;
@@ -264,10 +263,12 @@ document.addEventListener("keydown", function (e) {
     * {
       display: inline-block;
       margin-right: 0.5rem;
+      cursor: pointer;
     }
   }
   .actions-right {
     flex-grow: 0;
+    cursor: pointer;
   }
 }
 

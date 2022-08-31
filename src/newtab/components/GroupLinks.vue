@@ -1,22 +1,19 @@
 <template>
-  <div :class="[{ editable: props.editLink }, 'links-container']">
+  <div :class="[{ editable: props.editLink }, 'links-container']" id="links-container">
     <div v-for="group in store.userConfig.groupLinks" :key="group.name"
       :class="[{ 'is-archived': group.archive }, 'link-group']" ref="linkGroupsRef">
       <div :class="[{ 'dragged': dragGroupOptions.state }, 'link-group-name']" :draggable="dragGroupOptions.draggable">
-        <span>{{ group.name }}</span>
+        <span>{{  group.name  }}</span>
         <span class="archive-btn link-group-btn" @click="archiveGroup(group.name)" v-if="props.editLink">
           <eye-invisible-outlined v-if="group.archive" />
           <eye-outlined v-else />
         </span>
-        <!-- <span class="remove-btn link-group-btn" @click="removeLinkGroup(group.name)" v-if="state.edit_link">
-          移除
-        </span> -->
       </div>
       <draggable class="links" :list="group.links" group="links" @change="saveStoreUserConfigToStorage" itemKey="url"
         v-bind="state.dragOptions">
         <template #item="{ element }">
           <div class="list-group-item link-item">
-            <a :href="element.url">{{ element.title }}</a>
+            <a :href="element.url">{{  element.title  }}</a>
             <close-circle-outlined @click="delLinks(group.name, element.url)" />
           </div>
         </template>
@@ -212,7 +209,7 @@ const addDragListenerToGroups = () => {
 </script>
  
 <style lang="less" scoped>
-.links-container {
+#links-container.links-container {
   display: grid;
   justify-content: space-between;
   grid-template-columns: repeat(auto-fill, var(--linkcard-width));
@@ -220,21 +217,17 @@ const addDragListenerToGroups = () => {
   margin-bottom: 50px;
 }
 
-.links-container > .is-archived {
+.links-container>.is-archived {
   display: none;
 }
 
-.links-container.editable>.is-archived {
+#links-container.links-container.editable>.is-archived {
   display: block;
 }
 
-.links-container.editable>.link-group {
+#links-container.links-container.editable>.link-group {
   .link-group-name {
     cursor: auto;
-  }
-
-  .link-group-name .remove-link-group {
-    display: inline-block;
   }
 
   .links .link-item a {
@@ -319,7 +312,7 @@ const addDragListenerToGroups = () => {
   }
 }
 
-.link-group>.links>.link-item {
+#crx-newtab .link-group>.links>.link-item {
   display: block;
   width: 100%;
 
