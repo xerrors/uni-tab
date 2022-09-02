@@ -50,9 +50,9 @@
           <label for="bucket">Bucket Name</label>
           <input type="text" name="bucket" v-model="store.ossConfig.bucket">
           <label for="accessKeyId">AccessKey ID</label>
-          <input type="text" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
+          <input type="password" name="accessKeyId" v-model="store.ossConfig.accessKeyId">
           <label for="accessKeySecret">Accesskey Secret</label>
-          <input type="text" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
+          <input type="password" name="accessKeySecret" v-model="store.ossConfig.accessKeySecret">
 
           <div class="oss-config-btn">
             <button type="button" class="c-btn-m" @click="clickToEnableSync">
@@ -87,7 +87,7 @@
             Unsplash Client ID &ensp; 
             <a href="https://unsplash.com/documentation#public-authentication" target="_blank">详情</a> 
           </label>
-          <input type="text" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
+          <input type="password" name="simpmmode" v-model="store.userConfig.simpModeOptions.client_id"
             :onchange="inputOnchangeToSave" :disabled="store.userConfig.simpModeOptions.source.indexOf('api') == -1">
         </form>
       </div>
