@@ -127,7 +127,7 @@ const fetchUnsplashApi = (name, params) => {
     url: "https://api.unsplash.com/photos/random",
     params: params
   }
-  config.params.client_id = store.userConfig.simpModeOptions.client_id || "brbgDcyKVK0ahmSJYXgM85P4hRnI8FmhDM4Fhtohrl0"
+  config.params.client_id = store.userConfig.simpModeOptions.client_id
 
   chrome.storage.local.get(['wallpaperCache', "imageSrc"], res => {
     const cache  = res.wallpaperCache

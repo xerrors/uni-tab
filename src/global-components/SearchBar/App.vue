@@ -1,18 +1,12 @@
 <template>
-<div :class="[{'plus-mode': props.config }, 'searchbar']" id="crx-unitab-searchbar" ref="searchBarRef">
-  <span class="c-search-icon" id="c-search-icon">
-    <icon-font-ali :type="'icon-' + state.engine" v-if="props.config && props.config.name != 'unitab'"/>
-    <icon-font :type="'icon-' + state.engine" v-else/>
-  </span>
-  <input 
-    type="text" 
-    ref="searchBarInput"
-    id="search-bar-input"
-    class="search-bar-input"
-    v-model="inputValue"
-    placeholder="Search Here" 
-    @keyup.enter="onSearch" >
-</div>
+  <div :class="[{ 'plus-mode': props.config }, 'searchbar']" id="crx-unitab-searchbar" ref="searchBarRef">
+    <span class="c-search-icon" id="c-search-icon">
+      <icon-font-ali :type="'icon-' + state.engine" v-if="props.config && props.config.name != 'unitab'" />
+      <icon-font :type="'icon-' + state.engine" v-else />
+    </span>
+    <input type="text" ref="searchBarInput" id="search-bar-input" class="search-bar-input" v-model="inputValue"
+      :placeholder="searchEngine[state.engine].des" @keyup.enter="onSearch">
+  </div>
 </template>
 
 <script setup>
@@ -20,7 +14,6 @@ import { reactive, ref, watch, defineProps, onMounted } from "vue"
 import { searchEngine } from "@/assets/configs/config";
 import { IconFont, IconFontAli } from "@/global-components";
 import { onClickOutside } from "@vueuse/core";
-import { computed } from "@vue/reactivity";
 
 const props = defineProps({
   defaultSearchEngine: { type: String }, // 消息配置项
@@ -29,7 +22,7 @@ const props = defineProps({
 })
 
 const state = reactive({
-  engine: computed(() => props.defaultSearchEngine) || 'google',
+  engine: "google"
 })
 
 const inputValue = ref("")
@@ -53,18 +46,19 @@ watch(inputValue, (value) => {
     const info = searchEngine[engine];
     info.keywords.forEach(keyword => {
       if (value.toLowerCase().startsWith(keyword + " ") && state.engine != engine) {
-        inputValue.value = inputValue.value.slice(keyword.length+1)
+        inputValue.value = inputValue.value.slice(keyword.length + 1)
         state.engine = engine
       }
     });
   }
 })
 
-watch(() => props.defaultSearchEngine, (value) => {
-  state.engine = value;
-})
+// watch(() => props.defaultSearchEngine, (value) => {
+//   state.engine = value;
+// })
 
 onMounted(() => {
+  state.engine = props.defaultSearchEngine || 'google'
   if (props.config) {
     setTimeout(() => {
       searchBarInput.value.focus()
@@ -75,7 +69,7 @@ onMounted(() => {
         props.remove()
       }
     });
-    }
+  }
 })
 
 
@@ -91,12 +85,12 @@ onMounted(() => {
 </style>
 
 <style lang="less" scoped>
-div.c-searchbar-plus > div#crx-unitab-searchbar.searchbar {
+div.c-searchbar-plus>div#crx-unitab-searchbar.searchbar {
   width: 60vw;
   max-width: 680px;
 }
 
-div:not(.c-searchbar-plus) > div#crx-unitab-searchbar.searchbar {
+div:not(.c-searchbar-plus)>div#crx-unitab-searchbar.searchbar {
   width: 90%;
   max-width: 700px;
 }
@@ -120,7 +114,7 @@ div#crx-unitab-searchbar.searchbar {
     // border-color: var(--theme-color);
   }
 
-  & > span#c-search-icon.c-search-icon {
+  &>span#c-search-icon.c-search-icon {
     width: 42px;
     height: 42px;
     display: inline-block;
@@ -153,8 +147,7 @@ div#crx-unitab-searchbar.searchbar {
 }
 
 
-#crx-unitab-searchbar.searchbar > span#c-search-icon.c-search-icon > span {
+#crx-unitab-searchbar.searchbar>span#c-search-icon.c-search-icon>span {
   vertical-align: -webkit-baseline-middle;
 }
-
 </style>

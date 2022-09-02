@@ -2,7 +2,7 @@
   <div id="main-container" class="unitab">
     <simp-mode v-if="store.userConfig.simpMode" @exit-simp-mode="exitSimpMode"></simp-mode>
     <div :class="[{ 'show-option': state.showOptions }, 'newtab']" v-else-if="store.userConfig.name">
-      <div class="header-container">
+      <div :class="[{'only-searchbar': computedComponent}, 'header-container']">
         <div class="uni-search-bar">
           <search-bar :default-search-engine="store.userConfig.defaultSearchEngine"></search-bar>
         </div>
@@ -29,7 +29,7 @@
 </template>
  
 <script setup>
-import { onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 
 import SearchBar from "@/global-components/SearchBar/App.vue";
 import SearchBarPop from "@/global-components/SearchBar";
@@ -58,6 +58,10 @@ const state = reactive({
   editLink: false,
   showOptions: false,
   archiveMode: false,
+})
+
+const computedComponent = computed(() => {
+  return store.userConfig.hideLinks && store.userConfig.hideReadList
 })
 
 // loadStoreUserConfigFromStorage()
@@ -210,6 +214,10 @@ document.addEventListener("keydown", function (e) {
       animation: flip-horizontal-bottom 0.4s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;
     }
   }
+}
+
+.header-container.only-searchbar {
+  margin-top: 30vh;
 }
 
 @keyframes rotate-90-cw {

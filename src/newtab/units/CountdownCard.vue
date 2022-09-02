@@ -6,21 +6,22 @@
           {{  store.userConfig.ddlOption.name  }}
         </a>
       </div>
-      <div class="date-count">
+      <div class="date-count" v-if="store.userConfig.ddlOption.name">
         <span class="days">{{  absResult.days  }}</span> 天
         <span class="hours">{{  absResult.hours  }}</span> 时
         <span class="minutes">{{  absResult.minutes  }}</span> 分
         <span class="seconds">{{  absResult.seconds  }}</span> 秒
       </div>
-      <div class="close">
+      <div class="date-count" v-else>点击右上角的配置</div>
+      <div :class="[{'empty': !store.userConfig.ddlOption.name}, 'close']">
         <setting-outlined @click="state.showOptions = true" />
-        <close-outlined />
+        <close-outlined  @click="handleClose" />
       </div>
     </div>
     <div class="options">
-      <input type="text" class="input-name" v-model="store.userConfig.ddlOption.name" :onchange="inputOnchangeToSave">
-      <input type="text" class="input-link" v-model="store.userConfig.ddlOption.link" :onchange="inputOnchangeToSave">
-      <input type="text" class="input-ddl" v-model="store.userConfig.ddlOption.ddl" :onchange="inputOnchangeToSave">
+      <input type="text" class="input-name" v-model="store.userConfig.ddlOption.name" :onchange="inputOnchangeToSave" placeholder="deadline name">
+      <input type="text" class="input-link" v-model="store.userConfig.ddlOption.link" :onchange="inputOnchangeToSave" placeholder="deadline link">
+      <input type="text" class="input-ddl" v-model="store.userConfig.ddlOption.ddl" :onchange="inputOnchangeToSave" placeholder="ddl time str">
       <button class="c-btn-s" @click="state.showOptions = false" >完成</button>
     </div>
   </div>
@@ -61,6 +62,11 @@ const getAbsResult = () => {
 }
 
 const inputOnchangeToSave = () => {
+  saveStoreUserConfigToStorage()
+}
+
+const handleClose = () => {
+  store.userConfig.hideCountDown = true
   saveStoreUserConfigToStorage()
 }
 
@@ -146,13 +152,9 @@ const inputOnchangeToSave = () => {
     }
   }
 
-  &:hover {
-
-    // border: 2px solid var(--theme-color);
-    .close {
-      opacity: 1;
-      animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-    }
+  &:hover .close, & > .empty {
+    opacity: 1;
+    animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
   }
 
 }

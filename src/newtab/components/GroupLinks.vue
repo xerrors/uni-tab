@@ -27,7 +27,7 @@
         <input type="text" ref="newGroupInputBox" id="link-add-input-box" v-model="state.newGroupName"
           @keyup.enter="addNewLinkGroup">
         <button class="c-btn-m" @click="addNewLinkGroup">
-          <check-outlined />
+          <plus-outlined />
         </button>
       </div>
     </div>
@@ -49,7 +49,6 @@ import {
   EyeOutlined,
   CloseCircleOutlined,
   PlusOutlined,
-  CheckOutlined,
 } from '@ant-design/icons-vue';
 
 import { CheckBox, Message } from "@/global-components"

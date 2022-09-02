@@ -8,7 +8,36 @@
         <h2 class="c-btn-text" @click="demoClick"> 导入 </h2>
       </div>
       <div class="opt-content">
-        <countdown-card></countdown-card>
+        <countdown-card v-if="!store.userConfig.hideCountDown"></countdown-card>
+
+        <form action="" class="opt-config">
+          <p class="opt-pri-name">用户配置</p>
+          <label for="engine">默认搜索引擎</label>
+          <select name="engine" v-model="store.userConfig.defaultSearchEngine" :onchange="inputOnchangeToSave">
+            <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">{{ engine.name }}</option>
+          </select>
+          <p>触发词：{{ store.userConfig.defaultSearchEngine &&
+            searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
+          <label for="content">组件设置</label>
+          <div class="opt-config-content">
+            <span :class="{'hide-active': store.userConfig.hideLinks}"
+              @click="clickToHideComponent('hideLinks')">
+              <input type="checkbox" v-model="store.userConfig.hideLinks" id="opt-hide-links">
+              <span>隐藏收藏链接</span>
+            </span>
+            <span :class="{'hide-active': store.userConfig.hideReadList}"
+              @click="clickToHideComponent('hideReadList')">
+              <input type="checkbox" v-model="store.userConfig.hideReadList" id="opt-hide-readlist">
+              <span>隐藏稍后阅读</span>
+            </span>
+            <span :class="{'hide-active': store.userConfig.hideCountDown}"
+              @click="clickToHideComponent('hideCountDown')">
+              <input type="checkbox" v-model="store.userConfig.hideCountDown" id="opt-hide-countdown">
+              <span>隐藏倒计时</span>
+            </span>
+          </div>
+        </form>
+
         <form action="" class="opt-sync">
           <p class="opt-pri-name">阿里云 OSS 同步设置 <a href="https://www.aliyun.com/product/oss" target="_blank">详情</a> </p>
           <span v-if="store.syncState.enableSync" class="sync-dot" :style="{background: state.syncDotColor}"></span>
@@ -35,29 +64,6 @@
             <button type="button" v-if="store.syncState.enableSync" class="c-btn-m btn-secondry"
               @click="clickToDisableSync">暂停自动同步</button>
             <button type="button" v-else class="c-btn-m btn-secondry" @click="clickToSaveOssConfig">仅保存</button>
-          </div>
-        </form>
-
-        <form action="" class="opt-config">
-          <p class="opt-pri-name">用户配置</p>
-          <label for="engine">默认搜索引擎</label>
-          <select name="engine" v-model="store.userConfig.defaultSearchEngine" :onchange="inputOnchangeToSave">
-            <option v-for="(engine, key, ind) in searchEngine" :value="key" :key="ind">{{ engine.name }}</option>
-          </select>
-          <p>触发词：{{ store.userConfig.defaultSearchEngine &&
-            searchEngine[store.userConfig.defaultSearchEngine].keywords.join(", ")}}</p>
-          <label for="content">组件设置</label>
-          <div class="opt-config-content">
-            <span :class="{'hide-active': store.userConfig.hideLinks}"
-              @click="clickToHideComponent('hideLinks')">
-              <input type="checkbox" v-model="store.userConfig.hideLinks" id="opt-hide-links">
-              <span>隐藏收藏链接</span>
-            </span>
-            <span :class="{'hide-active': store.userConfig.hideReadList}"
-              @click="clickToHideComponent('hideReadList')">
-              <input type="checkbox" v-model="store.userConfig.hideReadList" id="opt-hide-readlist">
-              <span>隐藏稍后阅读</span>
-            </span>
           </div>
         </form>
 
@@ -305,6 +311,7 @@ const clickToHideComponent = item => {
   
   .opt-config-content {
     display: flex;
+    flex-wrap: wrap;
 
     input[type=checkbox] {
       vertical-align: middle;
@@ -316,6 +323,7 @@ const clickToHideComponent = item => {
     }
 
     & > span {
+      margin-top: 10px;
       border-radius: 4px;
       background-color: #f0f2f4;
       padding: 0.5rem 0.8rem;
