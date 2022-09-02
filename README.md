@@ -1,5 +1,7 @@
 # Uni Tab
 
+[使用说明](https://krance.notion.site/f560f9a308c944519faef3a327acc27b)
+
 ## Project setup
 ```
 npm install
