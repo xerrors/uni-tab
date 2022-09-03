@@ -2,10 +2,10 @@
 	"manifest_version": 2,
 	"name": "UniTab",
 	"description": "一个究极缝合怪",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"browser_action": {
 		"default_title": "chuan",
-		"default_icon": "assets/icons/icon-64.png",
+		"default_icon": "assets/icons/icon.png",
 		"default_popup": "html/popup.html"
 	},
     "chrome_url_overrides" : {
