@@ -1,6 +1,12 @@
 <template>
   <div :class="[{ 'readlist-hidden': readlist.length == 0 }, 'readlist-container']">
-    <div class="title" @click="readContainer.scrollLeft = 0">稍后阅读</div>
+    <div class="title" @click="readContainer.scrollLeft = 0">
+      <span>稍</span>
+      <span>后</span>
+      <span>阅</span>
+      <span>读</span>
+      <span class="count">{{readlist.length}}</span>
+    </div>
     <div ref="readContainer" class="readlist">
       <div class="read-item" v-for="(item, idx) in readlist" :key="idx">
         <a class="read-card">
@@ -80,16 +86,35 @@ watch(() => store.userConfig.readList, value => {
   .title {
     width: 88px;
     font-size: 1rem;
-    padding: 0 2rem;
+    padding: 0 1.6rem;
     // height: auto;
     box-sizing: border-box;
     // box-shadow: 0 0 1px 1px rgb(0 0 0 / 5%);
     // border: 1px solid var(--border-color);
     // border-radius: 4px;
-    text-align: center;
-    writing-mode: vertical-lr;
-    letter-spacing: 12px;
+    // text-align: center;
+    // writing-mode: vertical-lr;
+    // letter-spacing: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     position: relative;
+    gap: 4px;
+
+    & > .count {
+      margin-top: 4px;
+      border-radius: 50%;
+      background-color: var(--theme-color);
+      color: white;
+      width: 1re;
+      width: 1rem;
+      height: 1rem;
+      font-size: 0.8rem;
+      line-height: 100%;
+      padding: 2px;
+      text-align: center;
+    }
 
     &::before, &::after {
       content: "";
