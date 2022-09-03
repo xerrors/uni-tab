@@ -2,6 +2,8 @@
 
 [使用说明](https://krance.notion.site/f560f9a308c944519faef3a327acc27b)
 
+![demo](https://xerrors.oss-cn-shanghai.aliyuncs.com/upload/demo4.gif)
+
 ## Project setup
 ```
 npm install
