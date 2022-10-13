@@ -26,7 +26,10 @@ const praseReadlist = (list) => {
   list = JSON.parse(JSON.stringify(list))
   readlist.value = list.map(item => {
     item.domain = item.url.split('/')[2];
-    item.fmtTime = formatTime(item.time)
+    if (item.domain.startsWith('www.')) {
+      item.domain = item.domain.slice(4)
+    }
+    item.fmtTime = formatTime(item.time, '{m}-{d}')
     return item;
   });
 }
@@ -61,14 +64,18 @@ watch(() => store.userConfig.readList, value => {
   .card-container {
     width: 100%;
     height: 100%;
+    display: grid;
+    justify-content: space-between;
+    grid-template-columns: repeat(auto-fill, var(--linkcard-width));
+    grid-gap: 20px;
 
     .card {
       display: inline-block;
       width: 220px;
       // height: 100px;
-      margin: 10px;
+      // margin: 10px;
       
-      padding: 10px;
+      padding: 14px 12px;
       border-radius: 10px;
       background-color: #fff;
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
@@ -122,9 +129,10 @@ watch(() => store.userConfig.readList, value => {
           font-size: 12px;
           cursor: pointer;
 
+          // 悬浮的时候字体变为浅红色，同时背景颜色为淡红色
           &:hover {
-            background-color: #f5f5f5;
-            color: var(--text-secondry-color);
+            color: #ea0000;
+            background-color: #fdd;
           }
         }
       }
