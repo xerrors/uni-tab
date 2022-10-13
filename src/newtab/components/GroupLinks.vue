@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, defineProps } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import draggable from 'vuedraggable'
 import { onClickOutside } from '@vueuse/core';
 
@@ -57,6 +57,7 @@ import {
   store
 } from "@/plugins/store"
 
+// eslint-disable-next-line
 const props = defineProps(["editLink", "archiveMode"])
 
 const addInputBox = ref(null)

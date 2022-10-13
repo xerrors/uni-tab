@@ -24,7 +24,7 @@
 <script setup>
 import { saveStoreUserConfigToStorage, store } from '@/plugins/store';
 import { convertImgToBase64 } from '@/utils/format';
-import { onMounted, reactive, ref, defineEmits } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
 
 import {
@@ -35,6 +35,7 @@ import {
 const simpModeRef = ref(null)
 const lazyImageRef1 = ref(null)
 const lazyImageRef2 = ref(null)
+// eslint-disable-next-line
 defineEmits(['exitSimpMode'])
 
 const sources = [{

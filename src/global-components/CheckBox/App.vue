@@ -13,8 +13,9 @@
 </template>
 
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 
+// eslint-disable-next-line
 const props = defineProps({
   config: { type: Object, default: () => { } }, // 消息配置项
   remove: { type: Function, default: () => { } }, // 取消挂载回调

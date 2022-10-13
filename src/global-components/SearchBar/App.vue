@@ -10,11 +10,12 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, defineProps, onMounted } from "vue"
+import { reactive, ref, watch, onMounted } from "vue"
 import { searchEngine } from "@/assets/configs/config";
 import { IconFont, IconFontAli } from "@/global-components";
 import { onClickOutside } from "@vueuse/core";
 
+// eslint-disable-next-line
 const props = defineProps({
   defaultSearchEngine: { type: String }, // 消息配置项
   config: { type: Object, default: () => { } }, // 消息配置项

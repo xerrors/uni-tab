@@ -24,10 +24,10 @@
 </template>
 
 <script setup>
-import { reactive, defineProps } from "vue";
+import { reactive } from "vue";
 import { IconFont } from "@/global-components"
 
-
+// eslint-disable-next-line
 const props = defineProps({
   config: { type: Object, default: () => { } }, // 消息配置项
   remove: { type: Function, default: () => { } }, // 取消挂载回调
