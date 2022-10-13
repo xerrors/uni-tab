@@ -36,6 +36,14 @@ const onSearch = () => {
       window.open(searchEngine[state.engine].url + inputValue.value)
       props.remove()
     }
+    else if (searchEngine[state.engine].type == 'app') {
+      if (state.engine == 'goto') {
+        window.location.href = "https://" + inputValue.value
+      }
+      else {
+        console.log("Undefined search engine")
+      }
+    }
     else {
       window.location.href = searchEngine[state.engine].url + inputValue.value
     }

@@ -115,6 +115,13 @@ export const searchEngine = {
     url: "https://www.deepl.com/translator#auto/auto/",
     des: "Deepl",
     keywords: ["翻译", "fanyi", "translator", "trans", "deepl"]
+  },
+  goto: {
+    name: "直达",
+    type: "app",
+    url: "no",
+    des: "直接打开",
+    keywords: ["直达", "zhida", "goto"]
   }
 }
 

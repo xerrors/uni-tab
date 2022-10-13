@@ -76,7 +76,7 @@ watch(() => store.userConfig.readList, value => {
       // margin: 10px;
       
       padding: 14px 12px;
-      border-radius: 10px;
+      border-radius: 6px;
       background-color: #fff;
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
       box-sizing: border-box;

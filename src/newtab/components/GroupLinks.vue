@@ -322,8 +322,8 @@ const addDragListenerToGroups = () => {
     border-radius: 4px;
     padding: 8px 10px;
     box-sizing: border-box;
-    font-size: 0.9rem;
-    line-height: 1rem;
+    font-size: 14px;
+    line-height: 14px;
     transition: background 0.1s ease-in-out;
   }
 
