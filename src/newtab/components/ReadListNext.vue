@@ -25,10 +25,21 @@ const readlist = ref([]);
 const praseReadlist = (list) => {
   list = JSON.parse(JSON.stringify(list))
   readlist.value = list.map(item => {
-    item.domain = item.url.split('/')[2];
-    if (item.domain.startsWith('www.')) {
-      item.domain = item.domain.slice(4)
+    let domain = item.url.match(/:\/\/(.[^/]+)/)[1]
+    // item.domain = item.url.split('/')[2];
+    if (domain.startsWith('www.')) {
+      domain = domain.slice(4)
     }
+    if (domain == 'mp.weixin.qq.com') {
+      domain = 'wechat'
+    }
+    else if (domain == 'zhihu.com' || domain == 'zhuanlan.zhihu.com') {
+      domain = 'zhihu'
+    }
+    else if (domain == 'github.com') {
+      domain = 'github'
+    }
+    item.domain = domain
     item.fmtTime = formatTime(item.time, '{m}-{d}')
     return item;
   });
@@ -87,9 +98,9 @@ watch(() => store.userConfig.readList, value => {
       }
 
       .card__title {
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         a {
-          height: 40px;
+          height: 42px;
           text-decoration: none;
           color: var(--text-secondry-color);
           font-size: 14px;
@@ -131,7 +142,7 @@ watch(() => store.userConfig.readList, value => {
 
           // 悬浮的时候字体变为浅红色，同时背景颜色为淡红色
           &:hover {
-            color: #ea0000;
+            color: #d00;
             background-color: #fdd;
           }
         }
