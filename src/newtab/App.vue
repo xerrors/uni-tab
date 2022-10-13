@@ -22,7 +22,8 @@
         </div>
       </div>
       <group-links v-if="!store.userConfig.hideLinks" :edit-link="state.editLink"></group-links>
-      <read-list v-if="!store.userConfig.hideReadList"></read-list>
+      <!-- <read-list v-if="!store.userConfig.hideReadList"></read-list> -->
+      <read-list-next v-if="!store.userConfig.hideReadList"></read-list-next>
     </div>
     <user-options v-if="state.showOptions" @hide-options="state.showOptions = false"></user-options>
   </div>
@@ -35,7 +36,8 @@ import SearchBar from "@/global-components/SearchBar/App.vue";
 import SearchBarPop from "@/global-components/SearchBar";
 import UserOptions from "./components/UserOptions.vue";
 import GroupLinks from "./components/GroupLinks.vue";
-import ReadList from "./components/ReadList.vue"
+// import ReadList from "./components/ReadList.vue"
+import ReadListNext from "./components/ReadListNext.vue"
 import SimpMode from "./components/SimpMode.vue"
 
 import {
