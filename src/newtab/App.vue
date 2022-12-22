@@ -1,6 +1,7 @@
 <template>
   <div id="main-container" class="unitab">
     <simp-mode v-if="store.userConfig.simpMode" @exit-simp-mode="exitSimpMode"></simp-mode>
+    <notion-todo v-if="store.userConfig.notionTodo"></notion-todo>
     <div :class="[{ 'show-option': state.showOptions }, 'newtab']" v-else-if="store.userConfig.name">
       <div :class="[{'only-searchbar': computedComponent}, 'header-container']">
         <div class="uni-search-bar">
@@ -39,6 +40,7 @@ import GroupLinks from "./components/GroupLinks.vue";
 // import ReadList from "./components/ReadList.vue"
 import ReadListNext from "./components/ReadListNext.vue"
 import SimpMode from "./components/SimpMode.vue"
+import NotionTodo from "./components/NotionTodo.vue"
 
 import {
   SettingOutlined,

@@ -2,7 +2,8 @@
 import { defaultConfig } from "@/assets/configs/config"
 // import { parseTime } from "@/utils/format"
 
-export const uniStorage = chrome.storage.sync
+// export const uniStorage = chrome.storage.sync;
+export const uniStorage = localStorage;
 
 export function loadConfigFromStorage() {
     return new Promise((resolve) => {

@@ -35,6 +35,11 @@
               <input type="checkbox" v-model="store.userConfig.hideCountDown" id="opt-hide-countdown">
               <span>隐藏倒计时</span>
             </span>
+            <span :class="{'hide-active': store.userConfig.notionTodo}"
+              @click="clickToHideComponent('notionTodo')">
+              <input type="checkbox" v-model="store.userConfig.notionTodo" id="opt-hide-todo">
+              <span>隐藏 NotionTodo</span>
+            </span>
           </div>
         </form>
 

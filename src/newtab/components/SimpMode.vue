@@ -38,6 +38,10 @@ const lazyImageRef2 = ref(null)
 // eslint-disable-next-line
 defineEmits(['exitSimpMode'])
 
+
+// const uniStorage = chrome.storage.local;
+const uniStorage = localStorage;
+
 const sources = [{
   name: 'unsplash-free',
   label: 'Unsplash Free',
@@ -108,7 +112,7 @@ const setpLoadImageCache = (base64Img) => {
 }
 
 const fetchRandomUnsplashFree = (name) => {
-  chrome.storage.local.get(["wallpaperCache", "imageSrc"], res => {
+  uniStorage.get(["wallpaperCache", "imageSrc"], res => {
     const cache  = res.wallpaperCache
     const canUseCache = cache && res.imageSrc && JSON.parse(res.imageSrc) == name
     if (canUseCache) {
@@ -130,7 +134,7 @@ const fetchUnsplashApi = (name, params) => {
   }
   config.params.client_id = store.userConfig.simpModeOptions.client_id
 
-  chrome.storage.local.get(['wallpaperCache', "imageSrc"], res => {
+  uniStorage.get(['wallpaperCache', "imageSrc"], res => {
     const cache  = res.wallpaperCache
     const canUseCache = cache && res.imageSrc && JSON.parse(res.imageSrc) == name
     if (canUseCache) {
@@ -153,7 +157,7 @@ const convertImageUrlToStorageByName = (url, name, callback, replace = false) =>
       console.log("replace")
       callback(base64Img)
     }
-    chrome.storage.local.set({
+    uniStorage.set({
       'wallpaperCache': JSON.stringify(base64Img),
       'imageSrc': JSON.stringify(name)
     })

@@ -40,7 +40,7 @@ const plugins = [
 // 页面文件
 const pages = {};
 // 配置 popup.html 页面
-const chromeName = ["popup", "newtab", "background", "inject"];
+const chromeName = ["popup", "todo", "newtab", "background", "inject"];
  
 chromeName.forEach(name => {
       pages[name] = {
@@ -75,5 +75,16 @@ module.exports = {
             config.output.filename('js/[name].js').end()
             config.output.chunkFilename('js/[name].js').end()
         }
-    }
+    },
+    devServer: {
+      // historyApiFallback: true,
+      proxy: {
+        'notion': {
+          context: () => true,
+          target: 'https://api.notion.com/v1/',
+          changeOrigin: true,
+        }
+      },
+      // noInfo: true
+  }
 }
